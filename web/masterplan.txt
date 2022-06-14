@@ -1,0 +1,14 @@
+message status
+- sending
+- sent
+- seen
+
+- paginate messages.
+- keep sending messages to the bottom, order them by the time server received them.
+- maybe show date only when hovering.
+
+- add separators based on days like on messenger.
+
+customize vue-toastification to it fits the theme.
+
+allow multiple sessions per account

@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URI")
+}
+
+model Account {
+  id            String          @id        @default(auto()) @map("_id") @db.ObjectId
+  username      String          @unique
+  isOwner       Boolean?      
+  tokenId       String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt  
+  passwordHash  String 
+  user          User?
+
+  @@map("accounts")
+}
+
+model User {
+  id            String                   @id    @db.ObjectId    @map("_id")
+  account       Account                  @relation(fields: [id], references: [id])            
+  relations     Relation[]
+  
+  @@map("users")
+}
+
+model Chat {
+
+  id               String                @id    @default(auto())    @db.ObjectId    @map("_id")
+  name             String?
+  chatType         ChatType  
+  // lastmessage   Message    @relati....
+  createdAt        DateTime              @default(now())
+  recipients       chatRecipient[]
+  // groupOwnerId     String?
+
+  // lastMessageId    String?
+
+  @@map("chats")
+}
+
+type Relation {
+  userId        String          @db.ObjectId
+  status        RelationStatus
+  createdAt     DateTime        @default(now())
+}
+
+type chatRecipient {
+  userId        String          @db.ObjectId
+  nickname      String?
+
+}
+
+enum RelationStatus {
+  Friend
+  BlockedBySelf
+  Incoming
+  Outgoing
+  BlockedByOther
+}
+
+enum ChatType {
+  Direct
+  Group
+}

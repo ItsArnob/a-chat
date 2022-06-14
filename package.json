@@ -1,0 +1,27 @@
+{
+  "name": "TBD",
+  "version": "0.0.1",
+  "description": "A chat app ",
+  "author": "ItsArnob",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "dev": "yarn concurrently --names api,web \"yarn workspace api start:dev\" \"yarn workspace web dev\"",
+    "build": "yarn build:client && yarn build:server",
+    "start": "yarn concurrently --names api,web \"yarn start:server\" \"yarn start:client\" ",
+    "build:client": "yarn workspace web build",
+    "build:server": "yarn workspace api build",
+    "start:client": "yarn workspace web preview --host",
+    "start:server": "yarn workspace api start:prod"
+  },
+  "workspaces": [
+    "web",
+    "api"
+  ],
+  "dependencies": {
+    "concurrently": "^7.2.1"
+  },
+  "devDependencies": {
+    "prettier": "^2.7.0"
+  }
+}

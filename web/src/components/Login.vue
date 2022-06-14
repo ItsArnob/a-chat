@@ -1,0 +1,108 @@
+<template>
+<div class="h-full w-full flex">
+    <div class="m-auto w-[400px] p-2">
+        <TabGroup>
+            <TabList class="flex  space-x-1 rounded-md bg-slate-800 backdrop-blur-sm p-1">
+                <Tab
+                v-slot="{ selected }"
+                class="w-full outline-none"
+                >
+                    <button
+                        :class="[
+                        'w-full outline-none rounded py-2.5 text-sm font-medium leading-5 text-white',
+                        'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
+                        selected
+                        ? 'bg-white/20 shadow font-semibold'
+                        : 'text-white hover:bg-white/[0.12]',
+                        ]"
+                    >
+                        Log In
+                    </button>
+                </Tab>                
+                <Tab
+                v-slot="{ selected }"
+                class="w-full outline-none"
+                >
+                    <button
+                        :class="[
+                        'w-full outline-none rounded py-2.5 text-sm font-medium leading-5 text-white',
+                        'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
+                        selected
+                        ? 'bg-white/30 shadow font-semibold'
+                        : 'text-white hover:bg-white/[0.12]',
+                        ]"
+                    >
+                        Create An Account
+                    </button>
+                </Tab>                           
+            </TabList>
+            <TabPanels class="mt-2 text-white">
+                <TabPanel>
+                    <FormKit id="loginForm" type="form" :actions="false" @submit="login" message-class="text-rose-400">
+                        
+                        <FormKit 
+                            type="text" 
+                            name="username"
+                            label="Username"
+                            validation="required"
+                            help="Enter your username"
+                            label-class="text-lg"
+                            input-class="w-full p-2 rounded outline-none bg-slate-800 focus:ring focus:ring-purple-400"
+                            message-class="text-rose-400"
+                            help-class="text-gray-400"
+                          
+                        />
+                        <FormKit 
+                            type="password" 
+                            name="password"
+                            label="Password"
+                            validation="required"
+                            help="Enter your password"
+                            wrapper-class="mt-2"
+                            label-class="text-lg"
+                            input-class="w-full p-2 rounded outline-none bg-slate-800 focus:ring focus:ring-purple-400"
+                            message-class="text-rose-400"
+                            help-class="text-gray-400"
+                          
+                        />
+                        <FormKit
+                            type="submit"
+                            :disabled="isFormSubmitting"
+                            wrapper-class="mt-4 w-full text-center bg-purple-600 rounded"
+                            input-class="font-semibold p-2 w-full outline-none focus:ring rounded focus:ring-purple-400"
+                            
+                        > 
+                        <p v-if="isFormSubmitting">Logging In...</p>
+                        <p v-else>Log In</p>
+                        </FormKit>
+                        
+                    </FormKit>
+                </TabPanel>
+            </TabPanels>
+        </TabGroup>
+    </div>
+</div>
+</template>
+<script setup>
+
+import { useUserStore } from '@/stores/user';
+import { clearErrors, FormKit, setErrors } from "@formkit/vue";
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/vue"
+import { ref } from "vue";
+
+
+const isFormSubmitting = ref(false);
+const userStore = useUserStore()
+
+async function login (credentials) {
+    isFormSubmitting.value = true;
+    clearErrors("loginForm");
+
+    userStore.login(credentials.username, credentials.password).then((message) => {
+        
+        if(!message.ok) setErrors("loginForm", [`${message}`])
+    }).finally(() => { isFormSubmitting.value = false });
+}
+
+
+</script>

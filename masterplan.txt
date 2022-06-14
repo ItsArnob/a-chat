@@ -1,0 +1,15 @@
+API
+- make unique case insensitive collation index on the username field
+- move websocket event emitting code from controllers to a provider.
+- allow multiple sessions per account (why is this not already a thing? what was wrong with the past me?).
+- add proper logging.
+
+CLIENT
+- message status
+    - sending
+    - sent
+    - seen
+- paginate messages.
+- store getter that returns sorted messages by time
+- maybe separate messages based on time like on other chat platforms.
+- customize vue-toastification to fit the  theme.
