@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
-import { api } from '@/utils/axios'
+import { defineStore } from 'pinia';
+import { api } from '@/utils/axios';
 import { useUserStore } from '@/stores/user';
 
 export const useInboxesStore = defineStore({
@@ -10,39 +10,52 @@ export const useInboxesStore = defineStore({
     }),
     getters: {
         inboxesWithProperData(state) {
-            return state.inboxes.map(inbox => {
+            return state.inboxes.map((inbox) => {
                 return this.getInboxById(inbox.id);
-            })
+            });
         },
         getInboxById(state) {
             return (id) => {
-
                 const userStore = useUserStore();
-                const inbox = state.inboxes.find(inbox => inbox.id === id && inbox.chatType === "Direct" ); // TODO: ignoring other types of chats. fix this in the future. 
-                if(!inbox) return;
+                const inbox = state.inboxes.find(
+                    (inbox) => inbox.id === id && inbox.chatType === 'Direct'
+                ); // TODO: ignoring other types of chats. fix this in the future.
+                if (!inbox) return;
 
-                const recipient = inbox.recipients.find(recipient => recipient.userId !== userStore.auth.user.id);
-                const recipientUser = userStore.users.find(user => user.id === recipient.userId);
+                const recipient = inbox.recipients.find(
+                    (recipient) => recipient.userId !== userStore.auth.user.id
+                );
+                const recipientUser = userStore.users.find(
+                    (user) => user.id === recipient.userId
+                );
 
                 return {
                     id: inbox.id,
                     chatType: inbox.chatType,
                     online: !!recipientUser?.online,
-                    name: recipient?.nickname || recipientUser?.username || "Deleted User",
+                    name:
+                        recipient?.nickname ||
+                        recipientUser?.username ||
+                        'Deleted User',
                     recipients: inbox.recipients,
-                }
-            }
+                };
+            };
         },
         currentlyOpenInbox(state) {
             return this.getInboxById(state.currentlyOpenInboxId);
         },
         getInboxIdOfUserById(state) {
             return (id) => {
-                const inbox = state.inboxes.find(inbox => inbox.recipients.find(recipient => recipient.userId === id) && inbox.chatType === "Direct" ); 
-                if(!inbox) return;
+                const inbox = state.inboxes.find(
+                    (inbox) =>
+                        inbox.recipients.find(
+                            (recipient) => recipient.userId === id
+                        ) && inbox.chatType === 'Direct'
+                );
+                if (!inbox) return;
 
                 return inbox.id;
-            }
+            };
         },
         getCurrentlyOpenInbox(state) {
             return this.getInboxById(state.currentlyOpenInboxId);
@@ -56,20 +69,25 @@ export const useInboxesStore = defineStore({
             this.inboxes = inboxes;
         },
         openInbox(recipientId) {
-            return api.post(`/chat/${recipientId}`).then(res => {
-                this.addOrReplaceInbox(res.data);
-                return { ok: res.data.id };
-            }).catch(e => {
-                return e.response?.data?.message || e.message;
-            })
+            return api
+                .post(`/chat/${recipientId}`)
+                .then((res) => {
+                    this.addOrReplaceInbox(res.data);
+                    return { ok: res.data.id };
+                })
+                .catch((e) => {
+                    return e.response?.data?.message || e.message;
+                });
         },
 
         addOrReplaceInbox(data) {
-            const inboxExists = this.inboxes.find(inbox => inbox.id === data.id);
+            const inboxExists = this.inboxes.find(
+                (inbox) => inbox.id === data.id
+            );
 
-            if(inboxExists) {
-                this.inboxes = this.inboxes.map(inbox => {
-                    if(inbox.id === data.id) {
+            if (inboxExists) {
+                this.inboxes = this.inboxes.map((inbox) => {
+                    if (inbox.id === data.id) {
                         return data;
                     }
                     return inbox;
@@ -77,6 +95,6 @@ export const useInboxesStore = defineStore({
             } else {
                 this.inboxes.push(data);
             }
-        }
-    }
-})
+        },
+    },
+});

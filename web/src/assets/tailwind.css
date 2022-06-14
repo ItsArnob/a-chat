@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-#app, body, html {
+#app,
+body,
+html {
     @apply h-full bg-slate-900 text-white;
 }

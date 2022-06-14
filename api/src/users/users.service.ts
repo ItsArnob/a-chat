@@ -1,5 +1,10 @@
-import { AccountUserDto, RelatedUsersDto, RelationshipStatusWithNone, UserDto, } from "@/dto/user.dto";
-import { PrismaService } from "@/prisma/prisma.service";
+import {
+    AccountUserDto,
+    RelatedUsersDto,
+    RelationshipStatusWithNone,
+    UserDto,
+} from '@/dto/user.dto';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
     BadRequestException,
     ConflictException,
@@ -7,34 +12,40 @@ import {
     InternalServerErrorException,
     NotFoundException,
     UnauthorizedException,
-} from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { Account, ChatType, Relation, RelationStatus, User, } from "@prisma/client";
-import { ObjectId } from "mongodb";
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import {
+    Account,
+    ChatType,
+    Relation,
+    RelationStatus,
+    User,
+} from '@prisma/client';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class UsersService {
     constructor(
         private jwtService: JwtService,
-        private prisma: PrismaService,
+        private prisma: PrismaService
     ) {}
     async findOneByName(username: string): Promise<Account> {
         const user = await this.prisma.account.findFirst({
-            where: { username: { mode: "insensitive", equals: username } },
+            where: { username: { mode: 'insensitive', equals: username } },
         });
-        if (!user) throw new NotFoundException("Account not found.");
+        if (!user) throw new NotFoundException('Account not found.');
         return user;
     }
 
     async findProfileByName(username: string): Promise<AccountUserDto> {
         const user = await this.prisma.account.findFirst({
-            where: { username: { mode: "insensitive", equals: username } },
+            where: { username: { mode: 'insensitive', equals: username } },
             include: { user: true },
         });
-        if (!user) throw new NotFoundException("Account not found.");
+        if (!user) throw new NotFoundException('Account not found.');
         if (!user.user)
             throw new InternalServerErrorException(
-                "Unknown things occurred, please try again later.",
+                'Unknown things occurred, please try again later.'
             );
         return { ...user, user: user.user as User };
     }
@@ -62,20 +73,20 @@ export class UsersService {
             .verifyAsync(token)
             .catch((e) => {});
         if (!userToken)
-            throw new UnauthorizedException("Invalid authentication token.");
+            throw new UnauthorizedException('Invalid authentication token.');
 
         const user = await this.prisma.account.findFirst({
             where: {
                 tokenId: userToken.jti as string,
             },
         });
-        if (!user) throw new NotFoundException("Invalid authentication token.");
+        if (!user) throw new NotFoundException('Invalid authentication token.');
         return user;
     }
 
     async findOneById(id: string): Promise<Account> {
         const user = await this.prisma.account.findUnique({ where: { id } });
-        if (!user) throw new NotFoundException("Account not found.");
+        if (!user) throw new NotFoundException('Account not found.');
         return user;
     }
 
@@ -88,10 +99,10 @@ export class UsersService {
                 user: true,
             },
         });
-        if (!user) throw new NotFoundException("Account not found.");
+        if (!user) throw new NotFoundException('Account not found.');
         if (!user.user)
             throw new InternalServerErrorException(
-                "Unknown things occurred, please try again later.",
+                'Unknown things occurred, please try again later.'
             );
         return { ...user, user: user.user as User };
     }
@@ -123,10 +134,10 @@ export class UsersService {
     async addFriend(
         receiverUsernameOrId: string,
         sender: Account,
-        isId: boolean,
+        isId: boolean
     ) {
         if (isId && !ObjectId.isValid(receiverUsernameOrId))
-            throw new BadRequestException("Invalid user ID.");
+            throw new BadRequestException('Invalid user ID.');
         const receiverAccount = isId
             ? await this.findProfileById(receiverUsernameOrId)
             : await this.findProfileByName(receiverUsernameOrId);
@@ -134,23 +145,23 @@ export class UsersService {
         if (receiverAccount.id === sender.id)
             throw new ConflictException("You can't add yourself as a friend.");
         const relationship = receiverAccount.user.relations.find(
-            (relation) => relation.userId === sender.id,
+            (relation) => relation.userId === sender.id
         );
         // TODO: Check if these two users have a existing inbox, create one in the transaction if they dont.
         if (relationship) {
             switch (relationship.status) {
                 case RelationStatus.Friend:
                     throw new ConflictException(
-                        "You are already friends with this user.",
+                        'You are already friends with this user.'
                     );
                 case RelationStatus.Incoming:
                     throw new ConflictException(
-                        "You already sent a friend request to this user.",
+                        'You already sent a friend request to this user.'
                     );
                 case RelationStatus.BlockedBySelf:
-                    throw new ConflictException("You blocked this user.");
+                    throw new ConflictException('You blocked this user.');
                 case RelationStatus.BlockedByOther:
-                    throw new ConflictException("This user blocked you.");
+                    throw new ConflictException('This user blocked you.');
                 case RelationStatus.Outgoing: // accepts the friend request
                     // TODO: FIX: This can cause write conflict.
 
@@ -221,7 +232,7 @@ export class UsersService {
                                     ],
                                 },
                             });
-                        },
+                        }
                     );
                     return {
                         user: {
@@ -229,7 +240,7 @@ export class UsersService {
                             username: receiverAccount.username,
                         },
                         chat,
-                        message: "Friend request accepted.",
+                        message: 'Friend request accepted.',
                     };
             }
         }
@@ -271,17 +282,17 @@ export class UsersService {
                 id: receiverAccount.id,
                 username: receiverAccount.username,
             },
-            message: "Friend request sent.",
+            message: 'Friend request sent.',
         };
     }
     async removeFriend(userId: string, user: Account) {
         if (!ObjectId.isValid(userId))
-            throw new BadRequestException("Invalid user ID.");
+            throw new BadRequestException('Invalid user ID.');
         const userAccount = await this.findProfileById(user.id);
         const relationship = userAccount.user.relations.find(
-            (relation) => relation.userId === userId,
+            (relation) => relation.userId === userId
         );
-        if (!relationship) throw new NotFoundException("User not found.");
+        if (!relationship) throw new NotFoundException('User not found.');
 
         let message: string;
         // TODO: FIX: This can cause write conflict.
@@ -325,17 +336,17 @@ export class UsersService {
         };
         switch (relationship.status) {
             case RelationStatus.BlockedByOther:
-                throw new ConflictException("This user blocked you.");
+                throw new ConflictException('This user blocked you.');
             case RelationStatus.BlockedBySelf:
-                throw new ConflictException("You blocked this user.");
+                throw new ConflictException('You blocked this user.');
             case RelationStatus.Friend:
-                message = "Friend removed.";
+                message = 'Friend removed.';
                 return await removeFriendTransaction();
             case RelationStatus.Outgoing:
-                message = "Friend request canceled.";
+                message = 'Friend request canceled.';
                 return await removeFriendTransaction();
             case RelationStatus.Incoming:
-                message = "Friend request declined.";
+                message = 'Friend request declined.';
                 return await removeFriendTransaction();
             default:
                 throw new InternalServerErrorException();
@@ -345,7 +356,7 @@ export class UsersService {
         userId: string,
         returnAccount?: boolean,
         onlineUsersIds?: string[],
-        usersOfChats?: string[],
+        usersOfChats?: string[]
     ): Promise<RelatedUsersDto> {
         let relations: Relation[] = [];
         let account: AccountUserDto | null = null; // thanks typescript.
@@ -356,12 +367,12 @@ export class UsersService {
         } else {
             const relationsOfThisUser = await this.getRelationsOfUserId(userId);
             if (!relationsOfThisUser)
-                throw new NotFoundException("Account not found.");
+                throw new NotFoundException('Account not found.');
             relations = relationsOfThisUser.relations;
         }
         const usersThatAreNotRelatedButAreInTheInbox = usersOfChats?.filter(
             (userId) =>
-                !relations.some((relation) => relation.userId === userId),
+                !relations.some((relation) => relation.userId === userId)
         );
         const users =
             usersThatAreNotRelatedButAreInTheInbox?.length || relations.length
@@ -370,7 +381,7 @@ export class UsersService {
                           id: {
                               in: [
                                   ...relations.map(
-                                      (relation) => relation.userId,
+                                      (relation) => relation.userId
                                   ),
                                   ...(usersThatAreNotRelatedButAreInTheInbox ||
                                       []),
@@ -385,12 +396,12 @@ export class UsersService {
                 : null;
         const relatedUsers = users?.map((relatedUser) => {
             const relation = relations.find(
-                (relation) => relation.userId === relatedUser.id,
+                (relation) => relation.userId === relatedUser.id
             ) as Relation;
             return {
                 ...relatedUser,
                 relationship: usersThatAreNotRelatedButAreInTheInbox?.includes(
-                    relatedUser.id,
+                    relatedUser.id
                 )
                     ? RelationshipStatusWithNone.None
                     : relation.status,
@@ -400,8 +411,8 @@ export class UsersService {
                               userId === relatedUser.id &&
                               relations.find(
                                   (relation) =>
-                                      relation.status === RelationStatus.Friend,
-                              ),
+                                      relation.status === RelationStatus.Friend
+                              )
                       )
                     : false,
             };

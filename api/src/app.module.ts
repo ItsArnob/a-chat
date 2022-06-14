@@ -8,16 +8,16 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      load: [config],
-      isGlobal: true,
-      validate,
-    }),
-    AuthModule,
-    UsersModule,
-    ChatModule,
-    PrismaModule
-  ],
+    imports: [
+        ConfigModule.forRoot({
+            load: [config],
+            isGlobal: true,
+            validate,
+        }),
+        AuthModule,
+        UsersModule,
+        ChatModule,
+        PrismaModule,
+    ],
 })
 export class AppModule {}

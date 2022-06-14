@@ -1,5 +1,5 @@
-import { IsNotEmpty, IsString } from "class-validator";
-import { UserDto } from "./user.dto";
+import { IsNotEmpty, IsString } from 'class-validator';
+import { UserDto } from './user.dto';
 
 export class LoginDto {
     @IsString()
@@ -12,7 +12,5 @@ export class LoginDto {
 }
 
 export interface LoginResponseDto extends UserDto {
-
     token: string;
-
 }

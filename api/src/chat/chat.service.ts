@@ -1,11 +1,16 @@
-import { PrismaService } from "@/prisma/prisma.service";
-import { UsersService } from "@/users/users.service";
-import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { Account, Chat, ChatType, RelationStatus } from "@prisma/client";
-import { ObjectId } from "mongodb";
-import { Socket } from "socket.io";
-
+import { PrismaService } from '@/prisma/prisma.service';
+import { UsersService } from '@/users/users.service';
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    Logger,
+    NotFoundException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Account, Chat, ChatType, RelationStatus } from '@prisma/client';
+import { ObjectId } from 'mongodb';
+import { Socket } from 'socket.io';
 
 @Injectable()
 export class ChatService {
@@ -13,7 +18,7 @@ export class ChatService {
     constructor(
         private usersService: UsersService,
         private configService: ConfigService,
-        private prisma: PrismaService,
+        private prisma: PrismaService
     ) {}
 
     async getUserFromSocket(socket: Socket): Promise<Account> {
@@ -23,10 +28,10 @@ export class ChatService {
 
     async getDirectMessageChat(
         initiatorUserId: string,
-        userId: string,
+        userId: string
     ): Promise<Chat> {
         if (!ObjectId.isValid(userId))
-            throw new BadRequestException("Invalid user ID.");
+            throw new BadRequestException('Invalid user ID.');
         if (initiatorUserId === userId)
             throw new BadRequestException("You can't chat with yourself.");
         // check if user1 and user2 are friends
@@ -34,11 +39,11 @@ export class ChatService {
         const user2IsFriend = account2.user.relations.find(
             (relation) =>
                 relation.userId === initiatorUserId &&
-                relation.status === RelationStatus.Friend,
+                relation.status === RelationStatus.Friend
         );
         if (!user2IsFriend)
             throw new ForbiddenException(
-                "You have to be friends with this user before you can send messages.",
+                'You have to be friends with this user before you can send messages.'
             );
 
         const existingChat = await this.prisma.chat.findFirst({
@@ -53,7 +58,10 @@ export class ChatService {
                 },
             },
         });
-        if (!existingChat) throw new NotFoundException("Chat not found for this user... which is weird, eh?");
+        if (!existingChat)
+            throw new NotFoundException(
+                'Chat not found for this user... which is weird, eh?'
+            );
         return existingChat;
         /*if (existingChat) return existingChat;
         return this.prisma.chat.create({

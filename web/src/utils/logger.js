@@ -5,6 +5,6 @@ export const logger = {
         },
         error(msg) {
             console.log(`[WS] [ERROR] [${new Date().toISOString()}] ${msg}`);
-        }
-    }
-}
+        },
+    },
+};

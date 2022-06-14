@@ -1,4 +1,4 @@
-import { IUserBase } from "./users.types";
+import { IUserBase } from './users.types';
 
 export interface IUser extends IUserBase {
     passwordHash: string;

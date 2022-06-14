@@ -1,11 +1,10 @@
 <template>
-
-    <button @click="logout"
-        class="disabled:opacity-80 transition bg-emerald-600 hover:bg-emerald-500  text-white font-bold py-2 px-4 rounded-full whitespace-nowrap">
+    <button
+        @click="logout"
+        class="disabled:opacity-80 transition bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-full whitespace-nowrap"
+    >
         Log Out
     </button>
-
-
 </template>
 
 <script setup>
@@ -18,18 +17,17 @@ const userStore = useUserStore();
 const router = useRouter();
 
 const logout = () => {
-    const token = localStorage.getItem("token");
-    localStorage.removeItem("token");
-    router.push({ name: "homeContainer" });
+    const token = localStorage.getItem('token');
+    localStorage.removeItem('token');
+    router.push({ name: 'homeContainer' });
     clearSocket();
 
     userStore.clearData();
 
-    api.delete('/auth/logout', { 
-        headers: { 
-            Authorization: `Bearer ${token}`
-        }
-    })
-}
-
+    api.delete('/auth/logout', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+};
 </script>

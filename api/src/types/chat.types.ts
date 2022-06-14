@@ -1,4 +1,4 @@
-import { RelationStatus } from "@prisma/client";
+import { RelationStatus } from '@prisma/client';
 
 export interface IUserForUser {
     id: string;
@@ -10,5 +10,5 @@ export interface IUserInitData {
     id: string;
     username: string;
     isOwner: boolean;
-    users: IUserForUser[]
+    users: IUserForUser[];
 }

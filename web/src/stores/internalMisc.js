@@ -1,16 +1,14 @@
-import { defineStore } from 'pinia'
+import { defineStore } from 'pinia';
 
 export const useInternalMiscStore = defineStore({
     id: 'internalMisc',
     state: () => ({
-        wsNetworkError: false
+        wsNetworkError: false,
     }),
-    getters: {
-       
-    },
+    getters: {},
     actions: {
         setWsNetworkError(error) {
             this.wsNetworkError = error;
-        }
-    }
-})
+        },
+    },
+});

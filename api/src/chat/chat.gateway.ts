@@ -1,18 +1,18 @@
-import { WsExceptionFilter } from "@/common/filters/ws-exception.filter";
-import { AccountUserDto } from "@/dto/user.dto";
-import { UsersService } from "@/users/users.service";
-import { HttpException, Logger, UseFilters } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { WsExceptionFilter } from '@/common/filters/ws-exception.filter';
+import { AccountUserDto } from '@/dto/user.dto';
+import { UsersService } from '@/users/users.service';
+import { HttpException, Logger, UseFilters } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
     OnGatewayConnection,
     OnGatewayDisconnect,
     WebSocketGateway,
     WebSocketServer,
     WsException,
-} from "@nestjs/websockets";
-import { RelationStatus } from "@prisma/client";
-import { Server, Socket } from "socket.io";
-import { ChatService } from "./chat.service";
+} from '@nestjs/websockets';
+import { RelationStatus } from '@prisma/client';
+import { Server, Socket } from 'socket.io';
+import { ChatService } from './chat.service';
 
 @WebSocketGateway({ cors: { origin: true, credentials: true } })
 @UseFilters(WsExceptionFilter)
@@ -20,7 +20,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     constructor(
         private chatService: ChatService,
         private usersService: UsersService,
-        private configService: ConfigService,
+        private configService: ConfigService
     ) {}
     @WebSocketServer()
     server: Server;
@@ -39,14 +39,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 chat.recipients.forEach((recipient) => {
                     if (recipient.userId === client.user.id) return;
                     usersOfChats.push(recipient.userId);
-                }),
+                })
             );
             const userAccountAndRelations =
                 await this.usersService.getRelatedUsers(
                     client.user.id,
                     true,
                     onlineUsers,
-                    usersOfChats,
+                    usersOfChats
                 );
             const { isOwner, username } =
                 userAccountAndRelations.account as AccountUserDto;
@@ -62,12 +62,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 ? this.sockets[client.user.id].push(client.id)
                 : (this.sockets[client.user.id] = [client.id]);
 
-            client.emit("Ready", data);
+            client.emit('Ready', data);
             const friendIds = userAccountAndRelations.users
                 .filter((user) => user.relationship === RelationStatus.Friend)
                 .map((user) => user.id);
             if (friendIds.length) {
-                client.to(friendIds).emit("User:Update", {
+                client.to(friendIds).emit('User:Update', {
                     user: {
                         id: client.user.id,
                         online: true,
@@ -77,14 +77,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             console.timeEnd(`handleConnection:${client.id}`);
         } catch (e: any) {
             if (e instanceof WsException || e instanceof HttpException) {
-                client.emit("exception", {
-                    type: "onGatewayConnection",
+                client.emit('exception', {
+                    type: 'onGatewayConnection',
                     message: e.message,
                 });
             } else {
-                client.emit("exception", {
-                    type: "onGatewayConnection",
-                    message: "Internal Server Error",
+                client.emit('exception', {
+                    type: 'onGatewayConnection',
+                    message: 'Internal Server Error',
                 });
             }
             client.disconnect();
@@ -93,14 +93,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     async handleDisconnect(client: Socket): Promise<void> {
         try {
             const relatedUsers = await this.usersService.getRelatedUsers(
-                client.user.id,
+                client.user.id
             );
             const friendIds = relatedUsers.users
                 .filter((user) => user.relationship === RelationStatus.Friend)
                 .map((user) => user.id);
 
             if (friendIds.length) {
-                client.to(friendIds).emit("User:Update", {
+                client.to(friendIds).emit('User:Update', {
                     user: {
                         id: client.user.id,
                         online: false,

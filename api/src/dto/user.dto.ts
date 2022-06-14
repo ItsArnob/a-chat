@@ -1,4 +1,4 @@
-import { Account, RelationStatus, User } from "@prisma/client";
+import { Account, RelationStatus, User } from '@prisma/client';
 
 export interface UserDto {
     id: string;
@@ -6,12 +6,11 @@ export interface UserDto {
     username: string;
 }
 
-
 export interface AccountUserDto extends Account {
     user: User;
 }
 export enum RelationshipStatusWithNone {
-    None = "None",
+    None = 'None',
 }
 export interface getUserRelations {
     relationship: RelationStatus | RelationshipStatusWithNone;
