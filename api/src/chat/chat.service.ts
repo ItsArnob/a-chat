@@ -92,4 +92,32 @@ export class ChatService {
             },
         });
     }
+
+    async saveMessage(authorId: string, chatId: string, content: string) {
+        const errorMessage = "Chat not found or you don't have permission to send messages in this chat.";
+        const chat = await this.prisma.chat.findFirst({
+            where: {
+                id: chatId,
+                recipients: {
+                    some: {
+                        userId: authorId
+                    }
+                }
+            }
+        });
+
+        if(!chat) throw new ForbiddenException(errorMessage);
+
+        const authorCanSendMessageToChat = !!chat.recipients.find(user => user.userId === authorId);
+        if(!authorCanSendMessageToChat) throw new ForbiddenException(errorMessage);
+
+        return this.prisma.message.create({
+            data: {
+                authorId,
+                content,
+                chatId
+            }
+        });
+
+    }
 }

@@ -3,6 +3,7 @@ API
 - move websocket event emitting code from controllers to a provider.
 - allow multiple sessions per account (why is this not already a thing? what was wrong with the past me?).
 - add proper logging.
+- TODO: add chat to store after adding a new friend
 
 CLIENT
 - message status

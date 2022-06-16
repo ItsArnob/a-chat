@@ -26,7 +26,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     server: Server;
 
     private logger = new Logger(ChatGateway.name);
-    public sockets: { [k: string]: string[] } = {};
+    public sockets: { [k: string]: string[] } = {}; // TODO: use Map
 
     async handleConnection(client: Socket) {
         client.join(client.user.id);

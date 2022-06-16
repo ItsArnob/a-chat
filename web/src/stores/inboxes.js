@@ -70,7 +70,7 @@ export const useInboxesStore = defineStore({
         },
         openInbox(recipientId) {
             return api
-                .post(`/chat/${recipientId}`)
+                .post(`/chat/${recipientId}?type=user`)
                 .then((res) => {
                     this.addOrReplaceInbox(res.data);
                     return { ok: res.data.id };
