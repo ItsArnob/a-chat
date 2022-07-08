@@ -12,7 +12,7 @@ export function validate(config: Record<string, any>) {
             ? (config.CORS_ALLOWED_DOMAINS +=
                   ' http://localhost:3000 https://hoppscotch.io')
             : (config.CORS_ALLOWED_DOMAINS =
-                  'http://localhost:3000 https://hoppscotch.io');
+                  'http://localhost:3000 https://hoppscotch.io http://192.168.0.107:3000');
     }
 
     if (errors.length) {
@@ -29,6 +29,10 @@ export const config = () => {
         jwt: {
             secret: process.env.JWT_SECRET,
             expiresIn: Number(process.env.JWT_EXPIRATION_TIME),
+        },
+        db: {
+            name: process.env.DB_NAME || "a_chat",
+            uri: process.env.DB_URI || "mongodb://localhost:27017"
         },
         port: process.env.PORT ? parseInt(process.env.PORT) : 5000,
         discordWebhookURL: process.env.DISCORD_WEBHOOK_URL,

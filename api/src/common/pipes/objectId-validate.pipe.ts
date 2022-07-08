@@ -5,6 +5,6 @@ import { ObjectId } from 'mongodb';
 export class ObjectIdValidationPipe implements PipeTransform {
     transform(value: any) {
         if(!ObjectId.isValid(value)) throw new BadRequestException("Invalid ID.");
-        return value;
+        return new ObjectId(value);
     }
 }

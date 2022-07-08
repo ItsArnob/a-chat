@@ -1,16 +1,21 @@
 API
+- URGENT: SWITCH TO ULID FOR IDS
 - make unique case insensitive collation index on the username field
 - move websocket event emitting code from controllers to a provider.
 - allow multiple sessions per account (why is this not already a thing? what was wrong with the past me?).
 - add proper logging.
-- TODO: add chat to store after adding a new friend
+- script to create indexes - collation strength 2 on username, unique on token
 
 CLIENT
 - message status
-    - sending
-    - sent
-    - seen
-- paginate messages.
-- store getter that returns sorted messages by time
-- maybe separate messages based on time like on other chat platforms.
+    - sending (done)
+    - sent (done)
+    - seen (hard probably)
+- paginate messages. (done)
+- maybe separate messages based on time like on other chat platforms. (done)
+- add chat to store after adding a new friend (done)
+- TODO: DEAL WITH ONLINESTATUS. (Done?)
 - customize vue-toastification to fit the  theme.
+- use a global clock that is updated every second and use them for updating today/yesterday thingies (done)
+
+

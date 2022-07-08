@@ -1,4 +1,6 @@
 import { JwtAuthGuard } from '@/common/jwt-auth.guard';
+import { ObjectIdValidationPipe } from '@/common/pipes/objectId-validate.pipe';
+import { RelationStatus } from '@/models/user.model';
 import {
     Controller,
     Delete,
@@ -11,10 +13,9 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { RelationStatus } from '@prisma/client';
 import { Request } from 'express';
 import { ChatGateway } from '@/chat/chat.gateway';
-import { RelationshipStatusWithNone } from '@/dto/user.dto';
+import { ObjectId } from 'mongodb';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -25,46 +26,46 @@ export class UsersController implements OnModuleInit {
         private moduleRef: ModuleRef
     ) {}
 
-    @Put('/:usernameOrId/friend')
+     @Put('/:usernameOrId/friend')
     @UseGuards(JwtAuthGuard)
     async addFriend(
         @Param('usernameOrId') usernameOrId: string,
         @Query('type') type: string,
         @Req() req: Request
-    ): Promise<{ message: string; user: { id: string; username: string } }> {
+    ): Promise<{ message: string; user: { id: ObjectId; username: string } }> {
         const result = await this.usersService.addFriend(
             usernameOrId,
             req.user,
             type?.toLowerCase() === 'id'
         );
         if (result.message === 'Friend request accepted.') {
-            this.chatGateway.server.to(req.user.id).emit('User:Update', {
+            this.chatGateway.server.to(req.user.id.toString()).emit('User:Update', {
                 user: {
                     id: result.user.id,
-                    online: this.isUserOnline(result.user.id),
+                    online: this.userOnline(result.user.id),
                     relationship: RelationStatus.Friend,
                 },
             });
-            this.chatGateway.server.to(result.user.id).emit('User:Update', {
+            this.chatGateway.server.to(result.user.id.toString()).emit('User:Update', {
                 user: {
                     id: req.user.id,
-                    online: this.isUserOnline(req.user.id),
+                    online: this.userOnline(req.user.id),
                     relationship: RelationStatus.Friend,
                 },
             });
             this.chatGateway.server
-                .to(req.user.id)
-                .to(result.user.id) // TODO: IDEA: in the future if/when we have a chat that can be hidden, we need to notify the other user only if the chat is created
+                .to(req.user.id.toString())
+                .to(result.user.id.toString()) // TODO: IDEA: in the future if/when we have a chat that can be hidden, we need to notify the other user only if the chat is created
                 .emit('Chat:Update', result.chat);
         } else {
-            this.chatGateway.server.to(req.user.id).emit('User:Update', {
+            this.chatGateway.server.to(req.user.id.toString()).emit('User:Update', {
                 user: {
                     id: result.user.id,
                     username: result.user.username,
                     relationship: RelationStatus.Outgoing,
                 },
             });
-            this.chatGateway.server.to(result.user.id).emit('User:Update', {
+            this.chatGateway.server.to(result.user.id.toString()).emit('User:Update', {
                 user: {
                     id: req.user.id,
                     username: req.user.username,
@@ -78,29 +79,29 @@ export class UsersController implements OnModuleInit {
     @Delete('/:id/friend')
     @UseGuards(JwtAuthGuard)
     async removeFriend(
-        @Param('id') userId: string,
+        @Param('id', new ObjectIdValidationPipe()) userId: ObjectId,
         @Req() req: Request
-    ): Promise<{ message: string; user: { id: string } }> {
+    ): Promise<{ message: string; user: { id: ObjectId } }> {
         const result = await this.usersService.removeFriend(userId, req.user);
-        this.chatGateway.server.to(req.user.id).emit('User:Update', {
+        this.chatGateway.server.to(req.user.id.toString()).emit('User:Update', {
             user: {
                 id: result.user.id,
-                relationship: RelationshipStatusWithNone.None,
+                relationship: RelationStatus.None,
                 online: false,
             },
             message: result.message,
         });
-        this.chatGateway.server.to(result.user.id).emit('User:Update', {
+        this.chatGateway.server.to(result.user.id.toString()).emit('User:Update', {
             user: {
                 id: req.user.id,
-                relationship: RelationshipStatusWithNone.None,
+                relationship: RelationStatus.None,
                 online: false,
             },
             message: result.message,
         });
         return result;
     }
-
+/*
     @Get('/related')
     @UseGuards(JwtAuthGuard)
     async getRelatedUsers(@Req() req: Request) {
@@ -108,10 +109,10 @@ export class UsersController implements OnModuleInit {
             req.user.id
         );
         return relatedUsers ? relatedUsers.users : [];
-    }
+    }*/
 
-    isUserOnline(userId: string): boolean {
-        return this.chatGateway.sockets[userId]?.length > 0;
+    userOnline(userId: ObjectId): Date | boolean {
+        return this.chatGateway.sockets.get(userId.toString())?.online || false;
     }
 
     onModuleInit() {

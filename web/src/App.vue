@@ -1,4 +1,5 @@
 <script setup>
+import { useInternalMiscStore } from '@/stores/internalMisc';
 import { useUserStore } from '@/stores/user';
 import { initSocket } from '@/utils/socket';
 import { onMounted } from 'vue';
@@ -7,10 +8,11 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 import { RouterView } from 'vue-router';
 
 const userStore = useUserStore();
-
+const internalMiscStore = useInternalMiscStore();
 onMounted(() => {
     initSocket();
 });
+setInterval(() => internalMiscStore.updateTime(Date.now()), 1000);
 </script>
 
 <template>

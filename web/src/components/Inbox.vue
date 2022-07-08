@@ -27,8 +27,10 @@
                 />
 
                 <p class="text-base whitespace-nowrap text-gray-300/90 ml-auto">
-                    {{ time }}
+                    <MessageTimeAgo :time='time' v-if='time'/>
+
                 </p>
+
             </div>
             <div class="flex">
                 <p
@@ -36,30 +38,39 @@
                         'text-ellipsis overflow-hidden whitespace-nowrap text-gray-300/90',
                     ]"
                 >
-                    {{ lastMessageSender }}: {{ lastMessage }}
+                    {{ lastMessageFromSelf ? 'You:' : '' }} {{ lastMessage }}
                 </p>
+                <div class='ml-auto text-gray-300/90'>
+                    <MessageStatus :from-self='lastMessageFromSelf' :sending='lastMessageSending' :error='lastMessageError'/>
+                </div>
             </div>
         </div>
     </RouterLink>
 </template>
 
 <script setup>
+import MessageStatus from '@/components/chat/MessageStatus.vue';
+import MessageTimeAgo from '@/components/chat/MessageTimeAgo.vue';
+import { useUserStore } from '@/stores/user';
 import { BellIcon } from '@heroicons/vue/solid';
 import { RouterLink } from 'vue-router';
 
 import Avatar from './Avatar.vue';
 
 const emit = defineEmits(['inboxClicked']);
+const userStore = useUserStore();
 
 const props = defineProps([
     'name',
-    'lastMessageSender',
+    'lastMessageFromSelf',
     'lastMessage',
+    'lastMessageError',
     'hasNewMessages',
     'online',
     'inboxId',
     'time',
     'isOpen',
+    'lastMessageSending',
 ]);
 
 const inboxClicked = () => {

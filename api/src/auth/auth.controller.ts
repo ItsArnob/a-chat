@@ -31,15 +31,9 @@ export class AuthController {
     @Get('user')
     @UseGuards(JwtAuthGuard)
     async user(@Req() req: Request) {
-        const relations = await this.usersService.getRelationsOfUserId(
-            req.user.id
-        );
-
         return {
             id: req.user.id,
             username: req.user.username,
-            isOwner: req.user.isOwner,
-            relations,
         };
     }
 
@@ -47,7 +41,7 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @HttpCode(200)
     async logout(@Req() req: Request): Promise<void> {
-        await this.authService.logout(req.user.id);
-        return;
+        return this.authService.logout(req.user._id);
+
     }
 }

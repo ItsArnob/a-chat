@@ -8,17 +8,17 @@
             </button>
             <textarea
                 ref="textarea"
-                v-model="message"
+                :value='message'
                 rows="1"
-                @input="resizeTextArea"
+                @input="handleInputTextarea"
                 @keydown="shouldSubmit"
                 class="max-h-[208px] bg-gray-800 resize-none outline-none p-2 rounded w-full"
                 placeholder="Say something!"
             />
             <button
-                data-onClick="{submitMessage}"
-                data-disabled="{!message.trim()}"
-                class="self-end bg-gray-800 p-2 rounded-full ml-2 mb-[0.10rem] hover:bg-gray-600 ${message.trim() && 'bg-rose-500 hover:bg-rose-400'}"
+                @click="submitMessage"
+                :disabled="!canSubmit"
+                :class="['self-end p-2 rounded-full ml-2 mb-[0.10rem]', canSubmit ? 'bg-indigo-500 hover:bg-indigo-400' : 'bg-gray-800 hover:bg-gray-600']"
             >
                 <ChevronRightIcon class="h-5 w-5" />
             </button>
@@ -26,11 +26,17 @@
     </div>
 </template>
 <script setup>
+import { useMessagesStore } from '@/stores/messages';
 import { ChevronRightIcon, UploadIcon } from '@heroicons/vue/outline';
-import { defineEmits, nextTick, ref } from 'vue';
+import { computed, defineEmits, nextTick, ref } from 'vue';
 
+const props = defineProps(['chatId']);
 const textarea = ref();
-const message = ref();
+const message = ref('');
+
+const canSubmit = computed(() => !!message.value.trim());
+
+const messagesStore = useMessagesStore();
 
 const emit = defineEmits(['scrollToBottom']);
 
@@ -44,10 +50,18 @@ const shouldSubmit = (e) => {
         message.value.trim() && submitMessage();
     }
 };
-const submitMessage = () => {
-    console.log(message.value);
+const handleInputTextarea = (ev) => {
+    resizeTextArea()
+    message.value = ev.target.value
+
+}
+const submitMessage = async () => {
+    const messageCloned = message.value.trim();
     message.value = '';
-    emit('scrollToBottom');
-    nextTick(resizeTextArea);
+    textarea.value.focus();
+    const ackId = messagesStore.appendSelfMessage(props.chatId, messageCloned);
+    await nextTick(() => emit('scrollToBottom'));
+    await nextTick(resizeTextArea);
+    messagesStore.saveMessage(props.chatId, ackId, messageCloned);
 };
 </script>

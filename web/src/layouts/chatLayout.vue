@@ -3,7 +3,7 @@
         <div class="flex h-full">
             <!-- left sidebar -->
             <div
-                :class="[
+                :class="['z-50',
                     !!inboxesStore.currentlyOpenInboxId
                         ? forceHideSideBar
                             ? 'hidden'
@@ -52,9 +52,11 @@
                             :key="inbox.id"
                             :name="inbox.name"
                             :inbox-id="inbox.id"
-                            last-message="Hellooooooooo"
-                            last-message-sender="you"
-                            time="4:04 PM"
+                            :last-message="inbox.lastMessage?.content"
+                            :last-message-from-self="inbox.lastMessage?.fromSelf"
+                            :last-message-sending='inbox.lastMessage?.sending'
+                            :last-message-error='inbox.lastMessage?.error'
+                            :time="inbox.lastMessage?.timestamp"
                             :online="inbox.online"
                             :is-open="
                                 inboxesStore.currentlyOpenInboxId === inbox.id

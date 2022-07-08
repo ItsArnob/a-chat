@@ -2,20 +2,39 @@
     <div class="relative shrink-0">
         <img
             :src="avatar"
-            class="rounded-full w-14"
-            height="60"
-            width="60"
+            class="rounded-full"
+            :height="sizePx"
+            :width="sizePx"
             alt="user avatar"
         />
+        <!-- i do not like this lastOnline === null expression thank you.-->
         <div
-            v-show="online"
+            v-show="online && typeof online !== 'string'"
             :class="[
-                'w-4 bg-green-500 h-4 rounded-full ring absolute left-11 top-11',
+                'bg-green-500 rounded-full ring absolute',
                 hasFocus ? 'ring-slate-800' : 'ring-slate-900',
+                onlineStatusClasses
             ]"
         ></div>
     </div>
 </template>
 <script setup>
-const props = defineProps(['online', 'avatar', 'hasFocus']);
+import { computed } from 'vue'
+const props = defineProps(['online', 'avatar', 'hasFocus', 'size']);
+
+const sizePx = computed(() => {
+    if(props.size === 'sm') {
+        return '40'
+    } else if(props.size === 'lg') {
+        return '100'
+    } else return '58'
+})
+const onlineStatusClasses = computed(() => {
+    if(props.size === 'sm') {
+      return 'left-7 top-8 w-3 h-3'
+    } else if(props.size === 'lg') {
+        return 'w-6 h-6 left-[4.5rem] top-20'
+    }
+    return 'left-11 top-11 w-4 h-4'
+})
 </script>

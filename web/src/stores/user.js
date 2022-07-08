@@ -130,7 +130,6 @@ export const useUserStore = defineStore({
                 this.users.push({
                     id: id,
                     username: username,
-                    online: false,
                     relationship: 'Outgoing',
                 });
             }
@@ -148,7 +147,6 @@ export const useUserStore = defineStore({
                 this.users.push({
                     id: id,
                     username: username,
-                    online: false,
                     relationship: 'Incoming',
                 });
             }

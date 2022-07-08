@@ -1,8 +1,8 @@
 import { Account, RelationStatus, User } from '@prisma/client';
+import { ObjectId } from 'mongodb';
 
 export interface UserDto {
-    id: string;
-    isOwner: boolean | null;
+    id: ObjectId;
     username: string;
 }
 

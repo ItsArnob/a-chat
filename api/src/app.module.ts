@@ -4,8 +4,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 import { config, validate } from './config';
-import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
     imports: [
@@ -17,7 +17,7 @@ import { UsersModule } from './users/users.module';
         AuthModule,
         UsersModule,
         ChatModule,
-        PrismaModule,
+        DatabaseModule,
     ],
 })
 export class AppModule {}

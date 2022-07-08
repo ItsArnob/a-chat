@@ -12,12 +12,19 @@ import {
     faMessage,
     faUserXmark,
     faXmark,
+    faCircleNotch,
+    faCheckCircle,
+    faTriangleExclamation,
+    faArrowLeft
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 import Toast from 'vue-toastification';
+import FloatingVue from 'floating-vue';
+
 import 'vue-toastification/dist/index.css';
+import 'floating-vue/dist/style.css';
 
 import App from './App.vue';
 import router from './router';
@@ -34,7 +41,11 @@ library.add(
     faCheck,
     faAngleDown,
     faUserXmark,
-    faBan
+    faBan,
+    faCircleNotch,
+    faCheckCircle,
+    faTriangleExclamation,
+    faArrowLeft
 );
 app.component('font-awesome-icon', FontAwesomeIcon);
 
@@ -53,4 +64,5 @@ app.use(Toast, {
     icon: true,
     rtl: false,
 });
+app.use(FloatingVue);
 app.mount('#app');

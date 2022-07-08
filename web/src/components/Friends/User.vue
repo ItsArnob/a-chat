@@ -61,7 +61,7 @@
             <Dialog
                 as="div"
                 @close="closeRemoveConfirmation"
-                class="relative z-10"
+                class="relative z-50"
             >
                 <TransitionChild
                     as="template"

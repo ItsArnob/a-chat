@@ -1,3 +1,4 @@
+import { useMessagesStore } from '@/stores/messages';
 import { defineStore } from 'pinia';
 import { api } from '@/utils/axios';
 import { useUserStore } from '@/stores/user';
@@ -12,32 +13,36 @@ export const useInboxesStore = defineStore({
         inboxesWithProperData(state) {
             return state.inboxes.map((inbox) => {
                 return this.getInboxById(inbox.id);
-            });
+            }).sort((a, b) => (b.lastMessage?.id > a.lastMessage?.id) - (b.lastMessage?.id < a.lastMessage?.id));
         },
         getInboxById(state) {
             return (id) => {
                 const userStore = useUserStore();
+                const messagesStore = useMessagesStore();
+
                 const inbox = state.inboxes.find(
                     (inbox) => inbox.id === id && inbox.chatType === 'Direct'
                 ); // TODO: ignoring other types of chats. fix this in the future.
                 if (!inbox) return;
 
                 const recipient = inbox.recipients.find(
-                    (recipient) => recipient.userId !== userStore.auth.user.id
+                    (recipient) => recipient.id !== userStore.auth.user.id
                 );
                 const recipientUser = userStore.users.find(
-                    (user) => user.id === recipient.userId
+                    (user) => user.id === recipient.id
                 );
 
                 return {
                     id: inbox.id,
                     chatType: inbox.chatType,
-                    online: !!recipientUser?.online,
+                    online: recipientUser?.online || false,
                     name:
                         recipient?.nickname ||
                         recipientUser?.username ||
                         'Deleted User',
                     recipients: inbox.recipients,
+                    lastMessage: messagesStore.getMessageById(inbox.id, inbox.lastMessageId),
+                    beginningOfChatReached: inbox.beginningOfChatReached
                 };
             };
         },
@@ -49,16 +54,13 @@ export const useInboxesStore = defineStore({
                 const inbox = state.inboxes.find(
                     (inbox) =>
                         inbox.recipients.find(
-                            (recipient) => recipient.userId === id
+                            (recipient) => recipient.id === id
                         ) && inbox.chatType === 'Direct'
                 );
                 if (!inbox) return;
 
                 return inbox.id;
             };
-        },
-        getCurrentlyOpenInbox(state) {
-            return this.getInboxById(state.currentlyOpenInboxId);
         },
     },
     actions: {
@@ -79,7 +81,14 @@ export const useInboxesStore = defineStore({
                     return e.response?.data?.message || e.message;
                 });
         },
-
+        updateChat({ id, ...chat }) {
+                const chatIndex = this.inboxes.findIndex((chat) => chat.id === id);
+                if (chatIndex > -1) {
+                    this.inboxes[chatIndex] = { ...this.inboxes[chatIndex], ...chat };
+                } else {
+                    this.inboxes.push({ id, ...chat });
+                }
+        },
         addOrReplaceInbox(data) {
             const inboxExists = this.inboxes.find(
                 (inbox) => inbox.id === data.id
@@ -96,5 +105,10 @@ export const useInboxesStore = defineStore({
                 this.inboxes.push(data);
             }
         },
+        setLastMessageId(chatId, messageId) {
+            const inboxIndex = this.inboxes.findIndex(inbox => inbox.id === chatId);
+            this.inboxes[inboxIndex] = { ...this.inboxes[inboxIndex], lastMessageId: messageId };
+        },
+
     },
 });
