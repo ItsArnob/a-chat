@@ -1,4 +1,4 @@
-import { useInboxesStore } from '@/stores/inboxes';
+import { useChatsStore } from '@/stores/chats';
 import { useInternalMiscStore } from '@/stores/internalMisc';
 import { useMessagesStore } from '@/stores/messages';
 import { useUserStore } from '@/stores/user';
@@ -12,7 +12,7 @@ export const socket = io(import.meta.env.VITE_API_URL, {
 });
 export const initSocket = () => {
     const userStore = useUserStore();
-    const chatsStore = useInboxesStore();
+    const chatsStore = useChatsStore();
     const internalMiscStore = useInternalMiscStore();
     const messagesStore = useMessagesStore();
 
@@ -39,7 +39,7 @@ export const initSocket = () => {
                 isOwner: data.isOwner,
             },
         });
-        chatsStore.setInboxes(data.chats);
+        chatsStore.setChats(data.chats);
         data.lastMessages?.forEach(({ chatId, ...messageData }) => {
 
             messagesStore.addMessageToStore(messageData, chatId);
@@ -101,7 +101,7 @@ export const initSocket = () => {
         logger.ws.info('reconnected!');
         shouldBuffer = true;
         internalMiscStore.setWsNetworkError(false);
-        if(chatsStore.currentlyOpenInboxId) messagesStore.InitMessagesByChatIdIfStale(chatsStore.currentlyOpenInboxId);
+        if(chatsStore.currentlyOpenChatId) messagesStore.InitMessagesByChatIdIfStale(chatsStore.currentlyOpenChatId, true);
     });
     socket.io.on('reconnect_attempt', () => {
         logger.ws.info('attempting to reconnect...');

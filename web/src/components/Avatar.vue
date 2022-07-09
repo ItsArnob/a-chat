@@ -7,7 +7,6 @@
             :width="sizePx"
             alt="user avatar"
         />
-        <!-- i do not like this lastOnline === null expression thank you.-->
         <div
             v-show="online && typeof online !== 'string'"
             :class="[
@@ -19,7 +18,8 @@
     </div>
 </template>
 <script setup>
-import { computed } from 'vue'
+import { computed } from 'vue';
+
 const props = defineProps(['online', 'avatar', 'hasFocus', 'size']);
 
 const sizePx = computed(() => {

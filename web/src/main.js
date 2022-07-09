@@ -5,26 +5,27 @@ import {
     faAddressBook,
     faAngleDown,
     faAngleLeft,
+    faArrowLeft,
+    faArrowRightFromBracket,
     faBan,
     faBars,
     faCheck,
+    faCheckCircle,
+    faCircleNotch,
     faGear,
     faMessage,
-    faUserXmark,
-    faXmark,
-    faCircleNotch,
-    faCheckCircle,
     faTriangleExclamation,
-    faArrowLeft
+    faUserXmark,
+    faXmark
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import FloatingVue from 'floating-vue';
+import 'floating-vue/dist/style.css';
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 import Toast from 'vue-toastification';
-import FloatingVue from 'floating-vue';
 
 import 'vue-toastification/dist/index.css';
-import 'floating-vue/dist/style.css';
 
 import App from './App.vue';
 import router from './router';
@@ -45,7 +46,8 @@ library.add(
     faCircleNotch,
     faCheckCircle,
     faTriangleExclamation,
-    faArrowLeft
+    faArrowLeft,
+    faArrowRightFromBracket
 );
 app.component('font-awesome-icon', FontAwesomeIcon);
 

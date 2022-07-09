@@ -18,20 +18,19 @@
                     class="w-6 h-6"
                 />
             </button>
-            <div class='flex items-center' v-if='inboxesStore.currentlyOpenInbox'>
-                <Avatar avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/' size='sm' :online='inboxesStore.currentlyOpenInbox.online === true'/>
+            <div class='flex items-center' v-if='chatsStore.currentlyOpenChat'>
+                <Avatar avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/' size='sm' :online='chatsStore.currentlyOpenChat.online === true'/>
                 <div class='ml-2'>
                     <p
                         class="text-xl leading-none"
                     >
-                        {{ inboxesStore.currentlyOpenInbox.name }}
+                        {{ chatsStore.currentlyOpenChat.name }}
                     </p>
-                    <p class='text-sm leading-none text-slate-300' v-if='inboxesStore.currentlyOpenInbox.online === true'>Active now</p>
+                    <p class='text-sm leading-none text-slate-300'>
+                        {{ activeStatus }}
+                    </p>
                 </div>
             </div>
-        </div>
-        <div>
-            <LogoutButton />
         </div>
     </div>
     <p class="text-center bg-rose-500" v-if="internalMiscStore.wsNetworkError">
@@ -42,9 +41,9 @@
         class="h-full pt-2 px-2 overflow-y-auto flex flex-col gap-y-1.5 messages-container"
         ref="messagesContainer"
     >
-        <div v-if='inboxesStore.currentlyOpenInbox?.beginningOfChatReached' class='my-4 flex flex-col items-center'>
-            <Avatar avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/' size='lg' :online='inboxesStore.currentlyOpenInbox.online === true' />
-            <p class='text-2xl mt-2'>{{ inboxesStore.currentlyOpenInbox.name }}</p>
+        <div v-if='chatsStore.currentlyOpenChat?.beginningOfChatReached' class='my-4 flex flex-col items-center'>
+            <Avatar avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/' size='lg' :online='chatsStore.currentlyOpenChat.online === true' />
+            <p class='text-2xl mt-2'>{{ chatsStore.currentlyOpenChat.name }}</p>
             <p>This is the start of your conversation.</p>
         </div>
         <div class='flex flex-col gap-y-1.5 mt-auto'>
@@ -82,29 +81,30 @@ import Avatar from '@/components/Avatar.vue';
 import Message from '@/components/chat/Message.vue';
 import MessageInput from '@/components/chat/MessageInput.vue';
 import Spinner from '@/components/icons/Spinner.vue';
-import LogoutButton from '@/components/LogoutButton.vue';
-import { useInboxesStore } from '@/stores/inboxes';
+import { useActiveStatusRef } from '@/composables/ActiveStatus';
+import { useChatsStore } from '@/stores/chats';
 import { useInternalMiscStore } from '@/stores/internalMisc';
 import { useMessagesStore } from '@/stores/messages';
+import { useUserStore } from '@/stores/user';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import dayjs from 'dayjs';
 
-import { useUserStore } from '../../stores/user';
 
-const inboxesStore = useInboxesStore();
+const chatsStore = useChatsStore();
 const userStore = useUserStore();
 const internalMiscStore = useInternalMiscStore();
 const messagesStore = useMessagesStore();
 
 const route = useRoute();
 const router = useRouter();
+const { activeStatus } = useActiveStatusRef(computed(() => chatsStore.currentlyOpenChat?.online));
+
 const messagesContainer = ref();
 const messageLoading = ref({ top: false, bottom: false });
 
 let previousObservingFirstMessage;
 let startObservingMessages = false;
-const otherUserId = computed(() => inboxesStore.currentlyOpenInbox?.recipients?.find(
+const otherUserId = computed(() => chatsStore.currentlyOpenChat?.recipients?.find(
     (recipient) => recipient.id !== userStore.getUser.id
 ).id)
 const autoScrollObserver = new IntersectionObserver(
@@ -130,12 +130,11 @@ const loadMessageObserver = new IntersectionObserver(async(entries) => {
         messageLoading.value.top = false;
 
         await nextTick(() => {
-            console.log(messagesContainer.value.scrollHeight, initialHeight)
             messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight - initialHeight;
         });
 
         if(result?.beginningOfChatReached) {
-            inboxesStore.updateChat({ id: route.params.id, beginningOfChatReached: result.beginningOfChatReached });
+            chatsStore.updateChat({ id: route.params.id, beginningOfChatReached: result.beginningOfChatReached });
             return loadMessageObserver.disconnect();
         };
     }
@@ -147,12 +146,12 @@ const loadMessageObserver = new IntersectionObserver(async(entries) => {
 
 
 onMounted(async () => {
-    inboxesStore.setCurrentlyOpenInbox(route.params.id);
+    chatsStore.setCurrentlyOpenChat(route.params.id);
     messageLoading.value.top = true;
     await messagesStore.InitMessagesByChatIdIfStale(route.params.id);
     messageLoading.value.top = false;
     scrollToBottom()
-    if(!inboxesStore.currentlyOpenInbox.beginningOfChatReached) {
+    if(!chatsStore.currentlyOpenChat.beginningOfChatReached) {
         startObservingMessages = true;
         await observeFirstMessage();
     };
@@ -162,7 +161,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     autoScrollObserver.disconnect();
-    inboxesStore.setCurrentlyOpenInbox(null);
+    chatsStore.setCurrentlyOpenChat(null);
 });
 watch(() => messagesStore.getMessagesOfOpenChat.length, async(newLength, oldLength) => {
 

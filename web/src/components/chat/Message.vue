@@ -4,7 +4,7 @@
         :class="['text-lg rounded-xl py-2 px-3 max-w-[90%] message', fromSelf ? 'self-end bg-indigo-500' : 'self-start bg-slate-800', fromSelf && error ? 'opacity-70' : '']">
         <p class='whitespace-pre-wrap overflow-wrap-anywhere'> {{ content }}</p>
         <div :class='["text-sm text-white/70", fromSelf ? "text-end" : ""]'>
-            <MessageTimeAgo :time='time'/>
+            <p class='inline-block'> {{ formattedTime }} </p>
             <MessageStatus :from-self='fromSelf' :sending='sending' :error='error'/>
         </div>
     </div>
@@ -16,9 +16,11 @@
 </template>
 <script setup>
 import MessageStatus from '@/components/chat/MessageStatus.vue';
-import MessageTimeAgo from '@/components/chat/MessageTimeAgo.vue';
+import { useFormatTime } from '@/composables/FormatTime';
 
- const props = defineProps(['fromSelf', 'content', 'time', 'sending', 'error'])
+const props = defineProps(['fromSelf', 'content', 'time', 'sending', 'error'])
+
+const { formattedTime } = useFormatTime(props.time);
 </script>
 <style>
 

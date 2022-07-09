@@ -1,25 +1,25 @@
-import { useInboxesStore } from '@/stores/inboxes';
+import { useChatsStore } from '@/stores/chats';
 import { useUserStore } from '@/stores/user';
 import { api } from '@/utils/axios';
-import { monotonicFactory } from 'ulid';
-import { defineStore } from 'pinia';
 import dayjs from 'dayjs';
+import { defineStore } from 'pinia';
+import { monotonicFactory } from 'ulid';
 
 const ulid = monotonicFactory();
 
 export const useMessagesStore = defineStore({
     id: 'messages',
     state: () => ({
-        messagesByInbox: {}
+        messagesByChat: {}
     }),
     getters: {
         getMessagesOfOpenChat: (state) => {
 
             const userStore = useUserStore();
-            const chatsStore = useInboxesStore();
+            const chatsStore = useChatsStore();
 
-            if(!state.messagesByInbox[chatsStore.currentlyOpenInboxId]?.messages?.length) return []
-            const sortedMessages = state.messagesByInbox[chatsStore.currentlyOpenInboxId].messages.sort((a, b) => (a.id > b.id) - (a.id < b.id));
+            if(!state.messagesByChat[chatsStore.currentlyOpenChatId]?.messages?.length) return []
+            const sortedMessages = state.messagesByChat[chatsStore.currentlyOpenChatId].messages.sort((a, b) => (a.id > b.id) - (a.id < b.id));
             return sortedMessages.map((message, index) => {
                     let dataToReturn = { ...message, fromSelf: message.authorId === userStore.getUser.id };
                     if(index > 0) {
@@ -37,7 +37,7 @@ export const useMessagesStore = defineStore({
 
         getMessageById: (state) => (chatId, messageId) => {
             const userStore = useUserStore();
-            const message = state.messagesByInbox[chatId]?.messages?.find(message => message.id === messageId);
+            const message = state.messagesByChat[chatId]?.messages?.find(message => message.id === messageId);
             if(!message) return;
             return {
                 ...message,
@@ -47,28 +47,20 @@ export const useMessagesStore = defineStore({
         }
     },
     actions: {
-        // TODO: REPLACE WITH addMessageToStore
         appendSelfMessage(chatId, content) {
 
             const userStore = useUserStore();
-            const inboxesStore = useInboxesStore();
-
             const ackId = ulid()
-            if(!this.messagesByInbox[chatId]?.messages?.length) {
-                this.messagesByInbox[chatId] = { messages: [] };
-            }
-            this.messagesByInbox[chatId].messages.push({
+            this.addMessageToStore({
                 id: ackId,
                 content,
                 timestamp: Date.now(),
                 authorId: userStore.auth.user.id,
                 sending: true
-            });
-            inboxesStore.setLastMessageId(chatId, ackId);
+            }, chatId, ackId);
             return ackId;
         },
         saveMessage(chatId, ackId, content) {
-            const userStore = useUserStore();
 
             api.post(`/chat/${chatId}/messages`, { content, ackId })
                 .then(({ data }) => {
@@ -76,46 +68,53 @@ export const useMessagesStore = defineStore({
                     this.addMessageToStore(rest, chatId, ackId)
                 })
                 .catch(e => {
-                console.error(e);
-                // TODO: use addMessageToStore
-                const indexOfMessage = this.messagesByInbox[chatId].messages.findIndex((value) => value.id === ackId);
-                const message = this.messagesByInbox[chatId][indexOfMessage]
-                this.messagesByInbox[chatId][indexOfMessage] = { ...message, error: true };
-            });
+                    this.addMessageToStore({ error: true }, chatId, ackId, true)
+                });
         },
-        addMessageToStore(data, chatId, ackId) {
-            const inboxesStore = useInboxesStore();
+        addMessageToStore(data, chatId, ackId, shouldUpdate) {
+            const chatsStore = useChatsStore();
 
-            if(!this.messagesByInbox[chatId]?.messages?.length) {
-                this.messagesByInbox[chatId] = { messages: [] };
+            if(!this.messagesByChat[chatId]?.messages?.length) {
+                this.messagesByChat[chatId] = { messages: [] };
             }
-            const indexOfMessage = this.messagesByInbox[chatId].messages.findIndex((value) => value.id === ackId || value.id === data.id);
-            inboxesStore.setLastMessageId(chatId, data.id || ackId);
+            const indexOfMessage = this.messagesByChat[chatId].messages.findIndex((value) => value.id === ackId || value.id === data.id);
+            chatsStore.setLastMessageId(chatId, data.id || ackId);
 
-            if(indexOfMessage > -1) return this.messagesByInbox[chatId].messages[indexOfMessage] = data;
-            this.messagesByInbox[chatId].messages.push(data);
+            if(indexOfMessage > -1) {
+                if(shouldUpdate) {
+                    const message = this.messagesByChat[chatId].messages[indexOfMessage];
+                    return this.messagesByChat[chatId].messages[indexOfMessage] = { ...message, ...data };
+                }
+                else return this.messagesByChat[chatId].messages[indexOfMessage] = data;
+            }
+            this.messagesByChat[chatId].messages.push(data);
 
         },
-        setInitialMessages(data, chatId) {
-            const inboxesStore = useInboxesStore();
+        setInitialMessages(data, chatId, keepFailedMessages) {
+            const chatsStore = useChatsStore();
             let messages = data.map(({ chatId, ...message }) => ({ ...message }));
-            this.messagesByInbox[chatId] = { messages };
-            // TODO: Do i need to set lastMessageId?
+            if(keepFailedMessages && this.messagesByChat[chatId]?.messages) {
+                const failedMessages = this.messagesByChat[chatId].messages.filter((message) => message.error);
+                messages.push(...failedMessages);
+            }
+            messages.sort((a, b) => (a.id > b.id) - (a.id < b.id));
+            this.messagesByChat[chatId] = { messages };
+            if(messages[messages.length - 1]) chatsStore.setLastMessageId(chatId, messages[messages.length - 1].id);
         },
         addMessagesToStore(data, chatId) {
             let messages = data.map(({ chatId, ...message }) => ({ ...message }));
-            this.messagesByInbox[chatId].messages.push(...messages);
+            this.messagesByChat[chatId].messages.push(...messages);
         },
-        InitMessagesByChatIdIfStale(chatId) {
-            const inboxesStore = useInboxesStore();
+        InitMessagesByChatIdIfStale(chatId, keepFailedMessages) {
+            const chatsStore = useChatsStore();
 
-            if(this.messagesByInbox[chatId]?.stale) {
+            if(this.messagesByChat[chatId]?.stale) {
                 return api.get(`/chat/${chatId}/messages?limit=50`).then(({ data }) => {
-                    if(data.length < 50) inboxesStore.updateChat({ id: chatId, beginningOfChatReached: data[data.length - 1].id })
-                    this.setInitialMessages(data, chatId);
+                    if(data.length < 50) chatsStore.updateChat({ id: chatId, beginningOfChatReached: data[data.length - 1].id })
+                    this.setInitialMessages(data, chatId, keepFailedMessages);
                 });
-            } else if(!this.messagesByInbox[chatId]?.messages?.length) {
-                inboxesStore.updateChat({ id: chatId, beginningOfChatReached: true })
+            } else if(!this.messagesByChat[chatId]?.messages?.length) {
+                chatsStore.updateChat({ id: chatId, beginningOfChatReached: true })
             }
         },
         loadMessageBeforeId(messageId, chatId) {
@@ -126,11 +125,11 @@ export const useMessagesStore = defineStore({
             })
         },
         setMessagesStale(chatId, staleOrNot) {
-            this.messagesByInbox[chatId].stale = staleOrNot;
+            this.messagesByChat[chatId].stale = staleOrNot;
         },
         setAllMessagesStale() {
-            for(let chatId in this.messagesByInbox) {
-                this.messagesByInbox[chatId].stale = true;
+            for(let chatId in this.messagesByChat) {
+                this.messagesByChat[chatId].stale = true;
             }
         }
     },

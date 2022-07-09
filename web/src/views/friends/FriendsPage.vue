@@ -63,7 +63,7 @@
                         :username="friend.username"
                         avatar="https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/"
                         :online="friend.online"
-                        :inbox-id="inboxesStore.getInboxIdOfUserById(friend.id)"
+                        :chat-id="chatsStore.getChatIdOfUserById(friend.id)"
                         :id="friend.id"
                         type="Friend"
                     />
@@ -204,6 +204,9 @@
 <script setup>
 import User from '@/components/Friends/User.vue';
 import Spinner from '@/components/icons/Spinner.vue';
+
+import { useChatsStore } from '@/stores/chats';
+import { useUserStore } from '@/stores/user';
 import {
     Disclosure,
     DisclosureButton,
@@ -212,18 +215,15 @@ import {
     TabGroup,
     TabList,
     TabPanel,
-    TabPanels,
+    TabPanels
 } from '@headlessui/vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 
-import { useInboxesStore } from '@/stores/inboxes';
-import { useUserStore } from '@/stores/user';
-
 const router = useRouter();
 const userStore = useUserStore();
-const inboxesStore = useInboxesStore();
+const chatsStore = useChatsStore();
 const toast = useToast();
 
 const friendUsername = ref('');

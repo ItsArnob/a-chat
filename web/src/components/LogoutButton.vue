@@ -1,9 +1,12 @@
 <template>
     <button
         @click="logout"
-        class="disabled:opacity-80 transition bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-full whitespace-nowrap"
+        class="text-emerald-600 hover:text-emerald-500"
     >
-        Log Out
+        <font-awesome-icon
+            icon="fa-solid fa-arrow-right-from-bracket"
+            class="w-7 h-7"
+        />
     </button>
 </template>
 
@@ -16,15 +19,16 @@ import { useRouter } from 'vue-router';
 const userStore = useUserStore();
 const router = useRouter();
 
-const logout = () => {
+// TODO: clear the stores
+const logout = async () => {
+
     const token = localStorage.getItem('token');
     localStorage.removeItem('token');
-    router.push({ name: 'homeContainer' });
+    await router.push('/');
     clearSocket();
-
     userStore.clearData();
 
-    api.delete('/auth/logout', {
+    await api.delete('/auth/logout', {
         headers: {
             Authorization: `Bearer ${token}`,
         },

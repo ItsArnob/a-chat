@@ -4,7 +4,7 @@
             <!-- left sidebar -->
             <div
                 :class="['z-50',
-                    !!inboxesStore.currentlyOpenInboxId
+                    !!chatsStore.currentlyOpenChatId
                         ? forceHideSideBar
                             ? 'hidden'
                             : 'hidden md:block'
@@ -25,11 +25,14 @@
                         <div
                             class="shrink-0 h-14 px-2 self-start w-full flex items-center justify-between"
                         >
+                            <div class='flex'>
                             <img
                                 alt="user avatar"
                                 src="https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/"
                                 class="rounded-full w-10 md:w-11"
                             />
+                                <logout-button class='ml-2'/>
+                            </div>
                             <h2 class="text-2xl font-semibold">Chats</h2>
                             <div class="text-emerald-600 flex">
                                 <router-link
@@ -47,19 +50,19 @@
                     <div
                         class="h-full px-1.5 pt-2 w-full flex flex-col gap-0.5 overflow-y-auto"
                     >
-                        <Inbox
-                            v-for="inbox in inboxesStore.inboxesWithProperData"
-                            :key="inbox.id"
-                            :name="inbox.name"
-                            :inbox-id="inbox.id"
-                            :last-message="inbox.lastMessage?.content"
-                            :last-message-from-self="inbox.lastMessage?.fromSelf"
-                            :last-message-sending='inbox.lastMessage?.sending'
-                            :last-message-error='inbox.lastMessage?.error'
-                            :time="inbox.lastMessage?.timestamp"
-                            :online="inbox.online"
+                        <Chat
+                            v-for="chat in chatsStore.chatsWithProperData"
+                            :key="chat.id"
+                            :name="chat.name"
+                            :chat-id="chat.id"
+                            :last-message="chat.lastMessage?.content"
+                            :last-message-from-self="chat.lastMessage?.fromSelf"
+                            :last-message-sending='chat.lastMessage?.sending'
+                            :last-message-error='chat.lastMessage?.error'
+                            :time="chat.lastMessage?.timestamp"
+                            :online="chat.online"
                             :is-open="
-                                inboxesStore.currentlyOpenInboxId === inbox.id
+                                chatsStore.currentlyOpenChatId === chat.id
                             "
                         />
                     </div>
@@ -84,15 +87,16 @@
 </template>
 
 <script setup>
-import Inbox from '@/components/Inbox.vue';
-import { useInboxesStore } from '@/stores/inboxes';
+import Chat from '@/components/chat/Chat.vue';
+import LogoutButton from '@/components/LogoutButton.vue';
+import { useChatsStore } from '@/stores/chats';
 
 import { useUserStore } from '@/stores/user';
 import { ref } from 'vue';
 import { RouterView, useRoute, useRouter } from 'vue-router';
 
 const userStore = useUserStore();
-const inboxesStore = useInboxesStore();
+const chatsStore = useChatsStore();
 const forceHideSideBar = ref(false);
 
 const router = useRouter();

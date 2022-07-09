@@ -1,6 +1,6 @@
-import { defineStore } from 'pinia';
 import { api } from '@/utils/axios';
 import { initSocket } from '@/utils/socket';
+import { defineStore } from 'pinia';
 
 export const useUserStore = defineStore({
     id: 'user',

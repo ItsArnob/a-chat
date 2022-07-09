@@ -7,7 +7,10 @@ body,
 html {
     @apply h-full bg-slate-900 text-white;
 }
-
+* {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-tap-highlight-color: transparent;
+}
 @layer utilities {
     .overflow-wrap-anywhere {
         overflow-wrap: anywhere;
