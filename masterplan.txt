@@ -25,3 +25,5 @@ CLIENT
 - TODO: ISSUE: medium: the beginning of your conversation vanishes sometimes after reconnecting, stale isn't removed after reconnection sometimes for the open chat.
 - issue: formatDate returns a date when none is provided i believe. (done)
 - ISSUE: URGENT messages are being re-fetched whenever a new message shows up in a fresh chat, probably because the first message is in view when new messages show up. (done)
+
+cmoooon vercel
