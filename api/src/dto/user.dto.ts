@@ -1,24 +1,32 @@
-import { Account, RelationStatus, User } from '@prisma/client';
-import { ObjectId } from 'mongodb';
+import { Chat } from '@/models/chat.model';
+import { Transform, TransformFnParams } from 'class-transformer';
+import { IsIn, IsOptional, MinLength } from 'class-validator';
 
-export interface UserDto {
-    id: ObjectId;
-    username: string;
+export class AddFriendParamsDto {
+    @Transform(({ value }: TransformFnParams) => typeof value === 'string' ? value?.trim() : value)
+    @MinLength(1)
+    usernameOrId: string;
+}
+export class AddFriendQueryDto {
+    @Transform(({ value }: TransformFnParams) => typeof value === 'string' ? value?.trim()?.toLowerCase() : value)
+    @IsIn(['id', 'username'])
+    @IsOptional()
+    type?: string;
 }
 
-export interface AccountUserDto extends Account {
-    user: User;
+export interface AddFriendDto {
+    user: {
+        id: string;
+        username: string;
+    };
+    message: string;
+    chat?: Chat
 }
-export enum RelationshipStatusWithNone {
-    None = 'None',
+
+export interface RemoveFriendDto {
+    user: {
+        id: string;
+    };
+    message: string;
 }
-export interface getUserRelations {
-    relationship: RelationStatus | RelationshipStatusWithNone;
-    online: boolean;
-    id: string;
-    username: string;
-}
-export interface RelatedUsersDto {
-    account: AccountUserDto | null;
-    users: getUserRelations[];
-}
+export interface AddFriendResponseDto extends Omit<AddFriendDto, 'chat'> {};

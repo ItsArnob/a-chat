@@ -1,5 +1,5 @@
 API
-- URGENT: SWITCH TO ULID FOR IDS
+- URGENT: SWITCH TO ULID FOR IDS (done)
 - make unique case-insensitive collation index on the username field
 - move websocket event emitting code from controllers to a provider.
 - allow multiple sessions per account (why is this not already a thing? what was wrong with the past me?).
@@ -21,3 +21,6 @@ CLIENT
 - FIX: for some reason message submit errors aren't being handled (done)
 - FIX: failed messages gets deleted after reconnection. (probably should update messages instead of replacing the array?) (done)
 - ability to resend failed message. (low priority)
+- TODO: handle unhandled http errors
+- TODO: issue: formatDate returns a date when none is provided i believe.
+- TODO: ISSUE: URGENT: messages are being re-fetched whenever a new message shows up in a fresh chat, probably because the first message is in view when new messages show up.

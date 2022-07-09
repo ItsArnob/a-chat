@@ -3,9 +3,7 @@ import { UserNoProfile } from '@/models/user.model';
 import { UsersService } from '@/users/users.service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Account } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import { ObjectId } from 'mongodb';
 import { nanoid } from 'nanoid/async';
 
 @Injectable()
@@ -24,17 +22,15 @@ export class AuthService {
     }
 
     async login(user: UserNoProfile): Promise<LoginResponseDto> {
-        const payload = { sub: user.id.toString(), jti: await nanoid(32) };
+        const payload = { sub: user.id, jti: await nanoid(32) };
         const jwt = await this.jwtService.signAsync(payload);
         await this.userService.setToken(user.id, payload.jti)
         return {
-            token: jwt,
-            username: user.username,
-            id: user.id,
+            token: jwt
         };
     }
 
-    async logout(id: ObjectId): Promise<void> {
+    async logout(id: string): Promise<void> {
         await this.userService.setToken(id, null);
     }
 }

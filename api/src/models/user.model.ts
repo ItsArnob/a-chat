@@ -1,7 +1,7 @@
 import { ObjectId, WithId } from 'mongodb';
 
 export interface User {
-    id: ObjectId
+    id: string
     username: string
     passwordHash: string
     token?: string | null
@@ -9,10 +9,14 @@ export interface User {
         relations?: Relation[]
     } | null
 };
-export interface UserDoc extends Omit<User, 'id'> {};
+export interface UserDoc extends Omit<User, 'id'> {
+    _id: string
+};
 
 export interface UserNoProfile extends Omit<User, 'profile'> {}
-export interface UserNoProfileDoc extends WithId<Omit<UserNoProfile, 'id'>> {};
+export interface UserNoProfileDoc extends Omit<UserNoProfile, 'id'> {
+    _id: string
+};
 
 export interface UserRelation extends Relation {};
 
@@ -34,7 +38,7 @@ export const userRelationsProjection = {
 };
 
 export interface Relation {
-    id: ObjectId;
+    id: string;
     status: RelationStatus;
 }
 

@@ -8,8 +8,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { Account } from '@prisma/client';
-import { ObjectId } from 'mongodb';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 @Injectable()
@@ -27,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     async validate(payload: { sub: string; jti: string }): Promise<UserNoProfile> {
         try {
-            const user = await this.usersService.findOneNoProfileById(new ObjectId(payload.sub));
+            const user = await this.usersService.findOneNoProfileById(payload.sub);
 
             if (user.token !== payload.jti) throw new UnauthorizedException();
             return user;

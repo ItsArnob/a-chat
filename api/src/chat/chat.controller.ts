@@ -1,9 +1,9 @@
 import { JwtAuthGuard } from '@/common/jwt-auth.guard';
 import { ObjectIdValidationPipe } from '@/common/pipes/objectId-validate.pipe';
 import { UlidValidatorPipe } from '@/common/pipes/ulid-validator.pipe';
-import { GetMessagesQueryDto, messageDto } from '@/dto/chat.dto';
+import { GetMessagesQueryDto, messageDto, SaveDirectMessageDto, SaveDirectMessageResponseDto } from '@/dto/chat.dto';
+import { Message } from '@/models/chat.model';
 import { Body, Controller, Get, NotImplementedException, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { Chat } from '@prisma/client';
 import { Request } from 'express';
 import { ObjectId } from 'mongodb';
 import { ChatGateway } from './chat.gateway';
@@ -35,17 +35,14 @@ export class ChatController {
         return result;
     }
 
-    /*@Get()
-    async getChats(@Req() req: Request): Promise<Chat[]> {
-        return await this.chatService.getChatsOfUser(req.user._id.toString()); // TODO: should be objectid.
-    }
 */
+
     @Post("/:chatId/messages")
-    async saveMessage(
+    async saveDirectMessage(
         @Req() req: Request,
-        @Param('chatId', new ObjectIdValidationPipe()) chatId: ObjectId,
+        @Param('chatId', new UlidValidatorPipe()) chatId: string,
         @Body() body: messageDto,
-    ) {
+    ): Promise<SaveDirectMessageResponseDto> {
         const { recipients, ...data } = await this.chatService.saveDirectMessage(req.user.id, chatId, body.content);
         this.chatGateway.server.to(recipients).emit("Message:New", { ...data, ackId: body.ackId });
         return { ...data, ackId: body.ackId };
@@ -54,9 +51,9 @@ export class ChatController {
     @Get("/:chatId/messages")
     async getMessages(
         @Req() req: Request,
-        @Param('chatId', new ObjectIdValidationPipe()) chatId: ObjectId,
+        @Param('chatId', new UlidValidatorPipe()) chatId: string,
         @Query() query: GetMessagesQueryDto
-    ) {
+    ): Promise<Message[]> {
 
         return this.chatService.getMessages(req.user.id, chatId, query.before, query.after, query.limit);
     }

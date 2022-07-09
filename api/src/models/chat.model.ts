@@ -1,7 +1,6 @@
-import { ObjectId } from 'mongodb';
 
 export interface Chat {
-    id: ObjectId
+    id: string
     name?: string | null
     chatType: ChatType
     recipients: ChatRecipient[]
@@ -10,8 +9,8 @@ export interface Chat {
 
 export interface Message {
     id: string
-    chatId: ObjectId
-    authorId: ObjectId
+    chatId: string
+    authorId: string
     content?: string | null
     deleted?: boolean | null
 }
@@ -22,7 +21,7 @@ export enum ChatType {
     Group = "Group",
 }
 export interface ChatRecipient {
-    id: ObjectId
+    id: string
     nickname?: string
 }
 
@@ -42,7 +41,9 @@ export const messageProjection = {
     deleted: 1
 }
 
-export interface ChatDoc extends Omit<Chat, 'id'> {};
+export interface ChatDoc extends Omit<Chat, 'id'> {
+    _id: string
+};
 export interface MessageDoc extends Omit<Message, 'id'> {
     _id: string
 };

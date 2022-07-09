@@ -46,3 +46,17 @@ export class GetMessagesQueryDto {
     @Max(100)
     limit?: number
 }
+
+export interface SaveDirectMessageDto {
+    id: string;
+    timestamp: number;
+    chatId: string;
+    authorId: string;
+    content: string;
+    recipients: string[];
+}
+export interface SaveDirectMessageResponseDto extends Omit<SaveDirectMessageDto, 'recipients'> {
+    ackId?: string | undefined;
+}
+
+export interface OnlineSocketsList extends Map<string, { sIds: string[], online: Date | boolean }> {};

@@ -1,6 +1,6 @@
 import { LoginGuard } from '@/common/guards/login.guard';
 import { JwtAuthGuard } from '@/common/jwt-auth.guard';
-import { LoginResponseDto } from '@/dto/auth.dto';
+import { GetUserDto, LoginResponseDto } from '@/dto/auth.dto';
 import { UsersService } from '@/users/users.service';
 import {
     Controller,
@@ -30,7 +30,7 @@ export class AuthController {
 
     @Get('user')
     @UseGuards(JwtAuthGuard)
-    async user(@Req() req: Request) {
+    user(@Req() req: Request): GetUserDto {
         return {
             id: req.user.id,
             username: req.user.username,
@@ -41,7 +41,7 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @HttpCode(200)
     async logout(@Req() req: Request): Promise<void> {
-        return this.authService.logout(req.user._id);
+        return this.authService.logout(req.user.id);
 
     }
 }

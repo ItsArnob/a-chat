@@ -1,4 +1,5 @@
 import { WsExceptionFilter } from '@/common/filters/ws-exception.filter';
+import { OnlineSocketsList } from '@/dto/chat.dto';
 import { RelationStatus } from '@/models/user.model';
 import { UsersService } from '@/users/users.service';
 import { HttpException, Logger, UseFilters } from '@nestjs/common';
@@ -25,40 +26,39 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     server: Server;
 
     private logger = new Logger(ChatGateway.name);
-    public sockets = new Map<string, { sIds: string[], online: Date | boolean }>();
+    public sockets: OnlineSocketsList = new Map();
 
     async handleConnection(client: Socket) {
-        console.log(this.sockets);
         try {
 
             console.time(`handleConnection:${client.id}`);
 
             const data = await this.chatService.authenticateUserFromSocket(client, this.sockets);
-            client.join(data.id.toString());
+            client.join(data.id);
             client.user = { id: data.id };
             client.emit('Ready', data);
 
             const friendIds = data.users
                 .filter((user) => user.relationship === RelationStatus.Friend)
-                .map((user) => user.id.toString());
+                .map((user) => user.id);
             if (friendIds.length) {
                 client.to(friendIds).emit('User:Update', {
                     user: {
-                        id: client.user.id.toString(),
+                        id: client.user.id,
                         online: true
                     },
                 });
             }
-            if(this.sockets.has(client.user.id.toString())) {
-                let socket = this.sockets.get(client.user.id.toString()) as { sIds: string[], online: Date };
+            if(this.sockets.has(client.user.id)) {
+                let socket = this.sockets.get(client.user.id) as { sIds: string[], online: Date };
                 socket.sIds.push(client.id);
-                this.sockets.set(client.user.id.toString(), {
+                this.sockets.set(client.user.id, {
                     ...socket,
                     online: true
                 });
 
             } else {
-                this.sockets.set(client.user.id.toString(), { sIds: [client.id], online: true });
+                this.sockets.set(client.user.id, { sIds: [client.id], online: true });
             };
 
             console.timeEnd(`handleConnection:${client.id}`);
@@ -80,24 +80,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     async handleDisconnect(client: Socket): Promise<void> {
         try {
             if(client.user?.id) {
-                const socket = this.sockets.get(client.user.id.toString());
+                const socket = this.sockets.get(client.user.id);
                 let online: Date | boolean = true;
                 if(socket) {
                     const sidsWithoutThisOne = socket.sIds.filter((sid) => sid !== client.id);
                     if(!sidsWithoutThisOne.length) {
                         online = new Date()
-                        this.sockets.set(client.user.id.toString(), {
+                        this.sockets.set(client.user.id, {
                             sIds: [],
                             online
                         });
                     }
-                    else this.sockets.set(client.user.id.toString(), {
+                    else this.sockets.set(client.user.id, {
                         sIds: sidsWithoutThisOne,
                         online,
                     });
                 };
                 const friendIds = await this.usersService.getFriendIds(client.user.id);
-                const friendIdsRooms = friendIds.map(id => id.toString());
+                const friendIdsRooms = friendIds.map(id => id);
                 if(typeof online === "object" && friendIdsRooms.length) client.to(friendIdsRooms).emit('User:Update', {
                     user: {
                         id: client.user.id,

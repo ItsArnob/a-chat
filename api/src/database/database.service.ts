@@ -3,7 +3,7 @@ import { Chat, ChatDoc, MessageDoc } from '@/models/chat.model';
 import { User, UserDoc } from '@/models/user.model';
 import { ConfigService } from '@nestjs/config';
 import { MongoClient } from "mongodb";
-import { MongoDB } from "@/types/database.types";
+import { MongoDB } from "@/database/database.interface";
 
 export const databaseProviders = [
     {
