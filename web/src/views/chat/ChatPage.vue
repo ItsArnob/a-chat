@@ -123,6 +123,7 @@ const autoScrollObserver = new IntersectionObserver(
 );
 const loadMessageObserver = new IntersectionObserver(async(entries) => {
     if(entries[0].isIntersecting) {
+        if(chatsStore.currentlyOpenChat.beginningOfChatReached) return loadMessageObserver.unobserve(entries[0].target);
         const messageId = entries[0].target.id;
         messageLoading.value.top = true;
         const initialHeight = messagesContainer.value.scrollHeight;
@@ -135,7 +136,7 @@ const loadMessageObserver = new IntersectionObserver(async(entries) => {
 
         if(result?.beginningOfChatReached) {
             chatsStore.updateChat({ id: route.params.id, beginningOfChatReached: result.beginningOfChatReached });
-            return loadMessageObserver.disconnect();
+            return loadMessageObserver.unobserve(entries[0].target);
         };
     }
 }, {
@@ -166,7 +167,7 @@ onBeforeUnmount(() => {
 watch(() => messagesStore.getMessagesOfOpenChat.length, async(newLength, oldLength) => {
 
     // for autoscroll on new message (only if its in view).
-    if(newLength > oldLength) {
+    if(newLength > oldLength ) {
         // new message has been added to the store.
 
         const lastMessage = Array.from(document.querySelectorAll('.message-wrapper')).pop();
@@ -175,7 +176,7 @@ watch(() => messagesStore.getMessagesOfOpenChat.length, async(newLength, oldLeng
     }
 
     // observe the very first message that's rendered, so we can load more message before that when its in view.
-    if(startObservingMessages) {
+    if(startObservingMessages && !chatsStore.currentlyOpenChat.beginningOfChatReached) {
         await observeFirstMessage()
     }
 
