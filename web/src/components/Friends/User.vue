@@ -1,7 +1,7 @@
 <template>
     <div
         class="hover:cursor-pointer flex justify-between hover:bg-slate-800 rounded p-2"
-        @click="openInbox"
+        @click="openChat"
     >
         <Avatar :online="online" :avatar="avatar" />
         <div
@@ -10,9 +10,10 @@
                 status ? 'justify-evenly' : 'justify-center',
             ]"
         >
-            <p class="md:text-xl break-all flex shrink-0 leading-5">
+            <p class="md:text-xl break-all flex shrink-0">
                 {{ username }}
             </p>
+            <p class='text-sm leading-none text-slate-300'>{{ activeStatus }}</p>
         </div>
         <div class="ml-auto leading-none flex gap-2 items-center">
             <button
@@ -20,7 +21,7 @@
                 v-if="type === 'Friend'"
                 class="disabled:cursor-not-allowed transition bg-transparent hover:bg-emerald-800/70 rounded-full p-2 text-emerald-600 hover:text-emerald-400"
             >
-                <Spinner v-if="openInboxLoading" class="w-6 h-6" />
+                <Spinner v-if="openChatLoading" class="w-6 h-6" />
                 <font-awesome-icon
                     v-else
                     icon="fa-solid fa-message"
@@ -61,7 +62,7 @@
             <Dialog
                 as="div"
                 @close="closeRemoveConfirmation"
-                class="relative z-10"
+                class="relative z-50"
             >
                 <TransitionChild
                     as="template"
@@ -146,28 +147,14 @@
 <script setup>
 import Avatar from '@/components/Avatar.vue';
 import Spinner from '@/components/icons/Spinner.vue';
-import { useInboxesStore } from '@/stores/inboxes';
+import { useActiveStatusRef } from '@/composables/ActiveStatus';
+import { useChatsStore } from '@/stores/chats';
 import { useUserStore } from '@/stores/user';
-import {
-    Dialog,
-    DialogPanel,
-    DialogTitle,
-    TransitionChild,
-    TransitionRoot,
-} from '@headlessui/vue';
-import { ref } from 'vue';
+import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 
-const router = useRouter();
-const userStore = useUserStore();
-const inboxesStore = useInboxesStore();
-const toast = useToast();
-
-const acceptFriendRequestLoading = ref(false);
-const openInboxLoading = ref(false);
-const removeFriendLoading = ref(false);
-const isRemoveConfirmationDialogOpen = ref(false);
 
 const props = defineProps([
     'username',
@@ -175,9 +162,21 @@ const props = defineProps([
     'online',
     'id',
     'status',
-    'inboxId',
+    'chatId',
     'type',
 ]);
+
+const router = useRouter();
+const userStore = useUserStore();
+const chatsStore = useChatsStore();
+const toast = useToast();
+const { activeStatus } = useActiveStatusRef(computed(() => props.online));
+
+const acceptFriendRequestLoading = ref(false);
+const openChatLoading = ref(false);
+const removeFriendLoading = ref(false);
+const isRemoveConfirmationDialogOpen = ref(false);
+
 
 function closeRemoveConfirmation() {
     if (!removeFriendLoading.value)
@@ -187,23 +186,26 @@ function openRemoveConfirmation() {
     isRemoveConfirmationDialogOpen.value = true;
 }
 
-const openInbox = async () => {
+const openChat = async () => {
     if (
         removeFriendLoading.value ||
         acceptFriendRequestLoading.value ||
-        openInboxLoading.value
+        openChatLoading.value
     )
         return;
-    if (props.inboxId)
-        return router.push({ name: 'inbox', params: { id: props.inboxId } });
-    if (props.type === 'Friend') {
-        openInboxLoading.value = true;
-        const response = await inboxesStore.openInbox(props.id);
-        openInboxLoading.value = false;
+    if (props.chatId)
+        return router.push({ name: 'chat', params: { id: props.chatId } });
+
+    // NOTE: was used to create chat back when the api didn't create them automatically.
+
+    /*if (props.type === 'Friend') {
+        openChatLoading.value = true;
+        const response = await chatsStore.openChat(props.id);
+        openChatLoading.value = false;
         if (response.ok)
-            return router.push({ name: 'inbox', params: { id: response.ok } });
+            return router.push({ name: 'chat', params: { id: response.ok } });
         else toast.error(response);
-    }
+    }*/
 };
 const removeFriend = async () => {
     removeFriendLoading.value = true;

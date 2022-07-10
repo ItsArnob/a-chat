@@ -1,5 +1,6 @@
-import { useInboxesStore } from '@/stores/inboxes';
+import { useChatsStore } from '@/stores/chats';
 import { useInternalMiscStore } from '@/stores/internalMisc';
+import { useMessagesStore } from '@/stores/messages';
 import { useUserStore } from '@/stores/user';
 import io from 'socket.io-client';
 
@@ -11,8 +12,9 @@ export const socket = io(import.meta.env.VITE_API_URL, {
 });
 export const initSocket = () => {
     const userStore = useUserStore();
-    const chatsStore = useInboxesStore();
+    const chatsStore = useChatsStore();
     const internalMiscStore = useInternalMiscStore();
+    const messagesStore = useMessagesStore();
 
     let buffer = [];
     let shouldBuffer = true;
@@ -37,9 +39,16 @@ export const initSocket = () => {
                 isOwner: data.isOwner,
             },
         });
-        chatsStore.setInboxes(data.chats);
+        chatsStore.setChats(data.chats);
+        data.lastMessages?.forEach(({ chatId, ...messageData }) => {
+
+            messagesStore.addMessageToStore(messageData, chatId);
+        });
+        messagesStore.setAllMessagesStale();
+        internalMiscStore.setWsNetworkError(false);
         logger.ws.info('Socket connected & authenticated!');
 
+        shouldBuffer = false;
         // load data from the buffer if it exists.
         if (buffer.length > 0) {
             buffer.forEach(({ name, args }) => {
@@ -50,13 +59,25 @@ export const initSocket = () => {
             });
             buffer = [];
         }
-        shouldBuffer = false;
     });
     socket.on('Ready', () => {});
 
     socket.on('User:Update', (data) => {
         userStore.updateUser(data.user);
     });
+
+    socket.on("Chat:Update", (data) => {
+        chatsStore.updateChat(data)
+    });
+
+    socket.on("Message:New", (data) => {
+        const { ackId, chatId, ...rest } = data;
+        messagesStore.addMessageToStore(rest, chatId, ackId);
+    })
+
+
+
+    // Error handling.
 
     socket.on('connect_error', (data) => {
         if (data.message === 'Invalid authentication token.') {
@@ -67,15 +88,26 @@ export const initSocket = () => {
             logger.ws.error(data.message);
         }
     });
+    socket.on("exception", (data) => {
+        if (data.message === 'Invalid authentication token.') {
+            localStorage.removeItem('token');
+            userStore.setUser(null);
+            logger.ws.info('Socket unauthorized.');
+        } else {
+            logger.ws.error(data.message);
+        }
+    })
     socket.io.on('reconnect', () => {
         logger.ws.info('reconnected!');
         shouldBuffer = true;
-        internalMiscStore.setWsNetworkError(false);
     });
     socket.io.on('reconnect_attempt', () => {
         logger.ws.info('attempting to reconnect...');
         internalMiscStore.setWsNetworkError(true);
     });
+    socket.on("disconnect", (data) => {
+        messagesStore.setAllMessagesStale();
+    })
     socket.connect();
 };
 

@@ -15,7 +15,7 @@ export class CustomIoAdapter extends IoAdapter {
         const chatService = this.app.get<ChatService>(ChatService);
         const server = super.createIOServer(port, options) as Server;
 
-        server.use(async (socket, next) => {
+        /*server.use(async (socket, next) => {
             chatService
                 .getUserFromSocket(socket)
                 .then((user) => {
@@ -30,7 +30,7 @@ export class CustomIoAdapter extends IoAdapter {
                         next(new WsException(e.getResponse()));
                     } else next(new WsException('Unknown error occured.'));
                 });
-        });
+        })*/
         /*
     instrument(server, { 
       auth: false 

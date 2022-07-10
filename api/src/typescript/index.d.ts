@@ -1,8 +1,7 @@
-import { Account } from '@prisma/client';
-
+import { UserNoProfile } from '@/models/user.model';
 declare module 'express' {
     interface Request {
-        user: Account;
+        user: UserNoProfile;
     }
 }
 

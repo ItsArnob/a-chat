@@ -1,5 +1,7 @@
 import chatLayout from '@/layouts/chatLayout.vue';
-import HomeView from '@/views/index.vue';
+import HomeView from '@/views/IndexPage.vue';
+import ChatPage from '@/views/chat/ChatPage.vue';
+import FriendsPage from '@/views/friends/FriendsPage.vue';
 
 export const routes = [
     {
@@ -14,8 +16,8 @@ export const routes = [
             },
             {
                 path: '/i/:id',
-                name: 'inbox',
-                component: () => import('@/views/chat/inbox.vue'),
+                name: 'chat',
+                component: ChatPage,
                 meta: {
                     auth: true,
                 },
@@ -23,7 +25,7 @@ export const routes = [
             {
                 path: '/friends',
                 name: 'friends',
-                component: () => import('@/views/friends/index.vue'),
+                component: FriendsPage,
                 meta: {
                     auth: true,
                 },

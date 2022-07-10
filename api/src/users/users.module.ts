@@ -1,4 +1,3 @@
-import { PrismaModule } from '@/prisma/prisma.module';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -14,7 +13,6 @@ import { UsersService } from './users.service';
                 signOptions: { expiresIn: '9999999h' },
             }),
         }),
-        PrismaModule,
     ],
     providers: [UsersService],
     exports: [UsersService],

@@ -1,63 +1,28 @@
 <template>
+    <div class='message-wrapper flex flex-col'>
     <div
-        :class="[
-            'bg-slate-800 p-2 rounded mb-2 break-words',
-            status === 'sending' ? 'opacity-80' : '',
-        ]"
-    >
-        <div>
-            <span class="font-semibold text-lg text-rose-500">{{
-                username
-            }}</span>
-            <span class="ml-2 text-sm text-slate-300">{{ time }}</span>
-            <span class="text-slate-300 text-sm italic">
-                {{ status === 'sending' ? '(sending)' : '' }}</span
-            >
-        </div>
-        <div class="text-white whitespace-pre-wrap">
-            {{ message }}
+        :class="['text-lg rounded-xl py-2 px-3 max-w-[90%] message', fromSelf ? 'self-end bg-indigo-500' : 'self-start bg-slate-800', fromSelf && error ? 'opacity-70' : '']">
+        <p class='whitespace-pre-wrap overflow-wrap-anywhere'> {{ content }}</p>
+        <div :class='["text-sm text-white/70", fromSelf ? "text-end" : ""]'>
+            <!-- TODO: make it shorter, currently it looks kinda ugly when date is shown -->
+            <p class='inline-block'> {{ formattedTime }} </p>
+            <MessageStatus :from-self='fromSelf' :sending='sending' :error='error'/>
         </div>
     </div>
+    <div v-if='error' :class="['text-rose-400',fromSelf ? 'text-right' : '']">
+        <font-awesome-icon icon='fa-solid fa-triangle-exclamation'/>
+        <p class='inline-block ml-2' v-if='error'>Your message could not be delivered.</p>
+    </div>
+    </div>
 </template>
-
 <script setup>
-import { computed, defineProps } from 'vue';
+import MessageStatus from '@/components/chat/MessageStatus.vue';
+import { useFormatTime } from '@/composables/FormatTime';
 
-const props = defineProps([
-    'messageId',
-    'message',
-    'username',
-    'date',
-    'status',
-]);
+const props = defineProps(['fromSelf', 'content', 'time', 'sending', 'error'])
 
-function getOrdialDay(dt) {
-    return (
-        dt +
-        (dt % 10 == 1 && dt != 11
-            ? 'st'
-            : dt % 10 == 2 && dt != 12
-            ? 'nd'
-            : dt % 10 == 3 && dt != 13
-            ? 'rd'
-            : 'th')
-    );
-}
-const time = computed(() => {
-    const msgDate = new Date(props.date);
-    const now = new Date();
-    const hour12Time = msgDate.toLocaleString('default', {
-        minute: 'numeric',
-        second: 'numeric',
-        hour: 'numeric',
-        hour12: true,
-    });
-    return now.getDate() === msgDate.getDate()
-        ? `Today at ${hour12Time}`
-        : now.getDate() - 1 === msgDate.getDate()
-        ? `Yesterday at ${hour12Time}`
-        : `${msgDate.toLocaleString('default', {
-              month: 'short',
-          })} ${getOrdialDay(msgDate.getDate())} ${msgDate.getFullYear()}`;
-});
+const { formattedTime } = useFormatTime(props.time);
 </script>
+<style>
+
+</style>

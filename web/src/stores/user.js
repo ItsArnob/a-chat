@@ -1,6 +1,6 @@
-import { defineStore } from 'pinia';
 import { api } from '@/utils/axios';
 import { initSocket } from '@/utils/socket';
+import { defineStore } from 'pinia';
 
 export const useUserStore = defineStore({
     id: 'user',
@@ -130,7 +130,6 @@ export const useUserStore = defineStore({
                 this.users.push({
                     id: id,
                     username: username,
-                    online: false,
                     relationship: 'Outgoing',
                 });
             }
@@ -148,7 +147,6 @@ export const useUserStore = defineStore({
                 this.users.push({
                     id: id,
                     username: username,
-                    online: false,
                     relationship: 'Incoming',
                 });
             }
