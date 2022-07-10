@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="flex flex-col h-full w-full">
         <div class="h-14 p-2 flex items-center">
             <button
                 @click="goHome"

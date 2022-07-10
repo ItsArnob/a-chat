@@ -1,82 +1,93 @@
 <template>
-    <div
-        class="h-14 shrink-0 w-full self-start flex flex-wrap justify-between items-center p-2 bottom-shadow"
-    >
-        <div class="flex items-center h-full">
-            <button
-                @click="emit('toggleSideBar')"
-                class="hidden md:inline-block mr-2 leading-none text-emerald-600 hover:text-emerald-500 p-1"
-            >
-                <font-awesome-icon icon="fa-solid fa-bars" class="w-6 h-6" />
-            </button>
-            <button
-                @click="goHome"
-                class="md:hidden mr-2 leading-none text-emerald-600 hover:text-emerald-500 p-1"
-            >
-                <font-awesome-icon
-                    icon="fa-solid fa-arrow-left"
-                    class="w-6 h-6"
-                />
-            </button>
-            <div class='flex items-center' v-if='chatsStore.currentlyOpenChat'>
-                <Avatar avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/' size='sm' :online='chatsStore.currentlyOpenChat.online === true'/>
-                <div class='ml-2'>
-                    <p
-                        class="text-xl leading-none"
-                    >
-                        {{ chatsStore.currentlyOpenChat.name }}
-                    </p>
-                    <p class='text-sm leading-none text-slate-300'>
-                        {{ activeStatus }}
-                    </p>
+    <div class="flex flex-col h-full w-full relative">
+        <div
+            class="h-14 shrink-0 w-full self-start flex flex-wrap justify-between items-center p-2 bottom-shadow"
+        >
+            <div class="flex items-center h-full">
+                <button
+                    @click="emit('toggleSideBar')"
+                    class="hidden md:inline-block mr-2 leading-none text-emerald-600 hover:text-emerald-500 p-1"
+                >
+                    <font-awesome-icon icon="fa-solid fa-bars" class="w-6 h-6" />
+                </button>
+                <button
+                    @click="goHome"
+                    class="md:hidden mr-2 leading-none text-emerald-600 hover:text-emerald-500 p-1"
+                >
+                    <font-awesome-icon
+                        icon="fa-solid fa-arrow-left"
+                        class="w-6 h-6"
+                    />
+                </button>
+                <div class='flex items-center' v-if='chatsStore.currentlyOpenChat'>
+                    <Avatar avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/' size='sm' :online='chatsStore.currentlyOpenChat.online === true'/>
+                    <div class='ml-2'>
+                        <p
+                            class="text-xl leading-none"
+                        >
+                            {{ chatsStore.currentlyOpenChat.name }}
+                        </p>
+                        <p class='text-sm leading-none text-slate-300'>
+                            {{ activeStatus }}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <p class="text-center bg-rose-500" v-if="internalMiscStore.wsNetworkError">
-        Reconnecting...
-    </p>
-    <div
-        class="h-full pt-2 px-2 overflow-y-auto flex flex-col gap-y-1.5 messages-container"
-        ref="messagesContainer"
-    >
-        <div v-if='chatsStore.currentlyOpenChat?.beginningOfChatReached' class='my-4 flex flex-col items-center'>
-            <Avatar avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/' size='lg' :online='chatsStore.currentlyOpenChat.online === true' />
-            <p class='text-2xl mt-2'>{{ chatsStore.currentlyOpenChat.name }}</p>
-            <p>This is the start of your conversation.</p>
-        </div>
-        <div class='flex flex-col gap-y-1.5 mt-auto'>
+        <p class="text-center bg-rose-500" v-if="internalMiscStore.wsNetworkError">
+            Reconnecting...
+        </p>
+        <div
+            class="h-full pt-2 px-2 overflow-y-auto flex flex-col gap-y-1.5 messages-container"
+            ref="messagesContainer"
+        >
+            <div v-if='chatsStore.currentlyOpenChat?.beginningOfChatReached' class='my-4 flex flex-col items-center'>
+                <Avatar avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/' size='lg' :online='chatsStore.currentlyOpenChat.online === true' />
+                <p class='text-2xl mt-2'>{{ chatsStore.currentlyOpenChat.name }}</p>
+                <p>This is the start of your conversation.</p>
+            </div>
+            <div class='flex flex-col gap-y-1.5 mt-auto'>
 
-            <Spinner v-if='messageLoading.top && !messageLoadFailed.failed' class='w-8 h-8 shrink-0 mr-auto ml-auto my-2'/>
-            <button @click='loadFailedMessages' v-else-if='messageLoadFailed.failed' class='text-center'>
-                <RefreshIcon class='h-8 w-8 text-rose-400 mx-auto'/>
-                <p class='text-rose-400'>Failed to load messages, click to retry.</p>
-            </button>
-            <template v-for='message in messagesStore.getMessagesOfOpenChat' :key='message.id'>
-                <div v-if='message.dateSeparator' class='text-center text-slate-300 or-line-around'> {{ message.dateSeparator }}</div>
-                <message
-                    :id='message.id'
-                    :content='message.content'
-                    :from-self='message.fromSelf'
-                    :time='message.timestamp'
-                    :sending='message.sending'
-                    :error='message.error'/>
-            </template>
-            <Spinner v-if='messageLoading.bottom' class='w-8 h-8 shrink-0 mr-auto ml-auto my-2'/>
+                <Spinner v-if='messageLoading.top && !messageLoadFailed.failed' class='w-8 h-8 shrink-0 mr-auto ml-auto my-2'/>
+                <button @click='loadFailedMessages' v-else-if='messageLoadFailed.failed' class='text-center'>
+                    <RefreshIcon class='h-8 w-8 text-rose-400 mx-auto'/>
+                    <p class='text-rose-400'>Failed to load messages, click to retry.</p>
+                </button>
+                <template v-for='message in messagesStore.getMessagesOfOpenChat' :key='message.id'>
+                    <div v-if='message.dateSeparator' class='text-center text-slate-300 or-line-around'> {{ message.dateSeparator }}</div>
+                    <message
+                        :id='message.id'
+                        :content='message.content'
+                        :from-self='message.fromSelf'
+                        :time='message.timestamp'
+                        :sending='message.sending'
+                        :error='message.error'/>
+                </template>
+                <Spinner v-if='messageLoading.bottom' class='w-8 h-8 shrink-0 mr-auto ml-auto my-2'/>
+            </div>
         </div>
 
-    </div>
-    <MessageInput
-        @scroll-to-bottom="scrollToBottom"
-        v-if="userStore.canSendMessageToUser(otherUserId)"
-        :chatId='$route.params.id'
-    />
-    <div
-        v-else
-        class="w-full px-2 py-3 bg-slate-800 flex items-center text-slate-300"
-    >
-        <font-awesome-icon icon="fa-solid fa-ban" class="w-5 h-5 mr-2" />
-        <p>You must be friends to exchange messages.</p>
+            <transition name='slide-fade'>
+                <div v-if='showScrollToBottomBtn' class='absolute bottom-[4rem] left-0 right-0 mx-auto w-16 flex justify-center'>
+                    <button class='bg-slate-700 hover:bg-slate-600 transition duration-75 p-2 rounded-full' @click='scrollToBottom'>
+                        <ArrowSmDownIcon class='w-8 h-8 text-indigo-300'/>
+                    </button>
+                </div>
+
+            </transition>
+
+        <MessageInput
+            @scroll-to-bottom="scrollToBottom"
+            v-if="userStore.canSendMessageToUser(otherUserId)"
+            :chatId='$route.params.id'
+        />
+        <div
+            v-else
+            class="w-full px-2 py-3 bg-slate-800 flex items-center text-slate-300"
+        >
+            <font-awesome-icon icon="fa-solid fa-ban" class="w-5 h-5 mr-2" />
+            <p>You must be friends to exchange messages.</p>
+        </div>
     </div>
 </template>
 
@@ -92,7 +103,7 @@ import { useMessagesStore } from '@/stores/messages';
 import { useUserStore } from '@/stores/user';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { RefreshIcon } from "@heroicons/vue/outline";
+import { RefreshIcon, ArrowSmDownIcon } from "@heroicons/vue/outline";
 
 
 const chatsStore = useChatsStore();
@@ -108,6 +119,7 @@ const messagesContainer = ref();
 const messageLoading = ref({ top: false, bottom: false });
 const messageLoadFailed = ref({ failed: false, type: null });
 const firstMessage = ref(null);
+const showScrollToBottomBtn = ref(false);
 
 let previousObservingFirstMessage;
 let startObservingMessages = false;
@@ -152,8 +164,10 @@ const observeFirstMessage = async () => {
     }
 }
 const loadInitialMessages = () => {
+
+    if(messageLoading.value.top) return;
     messageLoading.value.top = true;
-    messagesStore.InitMessagesByChatIdIfStale(route.params.id).then(async() => {
+    messagesStore.InitMessagesByChatIdIfStale(route.params.id, true).then(async() => {
         scrollToBottom()
         if(!chatsStore.currentlyOpenChat.beginningOfChatReached) {
             startObservingMessages = true;
@@ -168,10 +182,11 @@ const loadInitialMessages = () => {
 };
 const loadMessagesBeforeFirstMessage = () => {
 
+    if(messageLoading.value.top) return;
     messageLoading.value.top = true;
     messageLoadFailed.value = { failed: false, type: null };
 
-    const initialHeight = messagesContainer.value.scrollHeight;
+    let initialHeight = messagesContainer.value.scrollHeight;
     messagesStore.loadMessageBeforeId(firstMessage.value.id, route.params.id).then(async(result) => {
 
         await nextTick(() => {
@@ -215,6 +230,12 @@ const emit = defineEmits(['toggleSideBar']);
 onMounted(async () => {
     chatsStore.setCurrentlyOpenChat(route.params.id);
     loadInitialMessages();
+    let scrollTop;
+    let a;
+    messagesContainer.value.addEventListener('scroll', (event) => {
+        const element = event.target
+        showScrollToBottomBtn.value = Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop) > 1000;
+    })
 
 });
 
@@ -286,5 +307,18 @@ document.addEventListener('keydown', (event) =>  {
     box-shadow: 6px 1px 4px -1px rgba(0,0,0,0.8);
     z-index: 1;
 
+}
+.slide-fade-enter-active {
+    transition: all 0.2s ease-out;
+}
+
+.slide-fade-leave-active {
+    transition: all 0.2s;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+    transform: translateY(20px);
+    opacity: 0;
 }
 </style>

@@ -48,6 +48,7 @@ export const initSocket = () => {
         internalMiscStore.setWsNetworkError(false);
         logger.ws.info('Socket connected & authenticated!');
 
+        shouldBuffer = false;
         // load data from the buffer if it exists.
         if (buffer.length > 0) {
             buffer.forEach(({ name, args }) => {
@@ -58,7 +59,6 @@ export const initSocket = () => {
             });
             buffer = [];
         }
-        shouldBuffer = false;
     });
     socket.on('Ready', () => {});
 

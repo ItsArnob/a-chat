@@ -17,6 +17,7 @@ import {
     faTriangleExclamation,
     faUserXmark,
     faXmark,
+    faArrowDown,
     faArrowRotateRight
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -49,7 +50,8 @@ library.add(
     faTriangleExclamation,
     faArrowLeft,
     faArrowRightFromBracket,
-    faArrowRotateRight
+    faArrowRotateRight,
+    faArrowDown
 );
 app.component('font-awesome-icon', FontAwesomeIcon);
 
