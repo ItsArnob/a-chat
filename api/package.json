@@ -2,9 +2,9 @@
     "name": "api",
     "version": "0.0.1",
     "description": "",
-    "author": "ItsArnob",
+    "author": "Arnob Roy",
     "private": true,
-    "license": "UNLICENSED",
+    "license": "BSD 3-Clause",
     "scripts": {
         "prebuild": "rimraf dist",
         "build": "nest build",

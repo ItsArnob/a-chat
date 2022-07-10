@@ -1,6 +1,8 @@
 {
     "name": "web",
     "version": "0.0.1",
+    "author": "Arnob Roy",
+    "license": "BSD 3-Clause",
     "scripts": {
         "dev": "vite",
         "build": "vite build",

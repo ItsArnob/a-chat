@@ -1,9 +1,9 @@
 {
     "name": "TBD",
     "version": "0.0.1",
-    "description": "A chat app ",
-    "author": "ItsArnob",
-    "license": "UNLICENSED",
+    "description": "A chat app",
+    "author": "Arnob Roy",
+    "license": "BSD 3-Clause",
     "private": true,
     "scripts": {
         "dev": "yarn concurrently --names api,web \"yarn workspace api start:dev\" \"yarn workspace web dev\"",
