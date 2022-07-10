@@ -13,6 +13,10 @@
                         : 'hidden md:block',
                 ]"
             >
+
+                <p class="text-center w-full bg-rose-500" v-if="internalMiscStore.wsNetworkError">
+                    Reconnecting...
+                </p>
                 <div
                     class="w-full h-full md:hidden bg-black/30 fixed top-0 left-0"
                     @click="openLeftSideBar = false"
@@ -47,6 +51,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div
                         class="h-full px-1.5 pt-2 w-full flex flex-col gap-0.5 overflow-y-auto"
                     >
@@ -90,6 +95,7 @@
 import Chat from '@/components/chat/Chat.vue';
 import LogoutButton from '@/components/LogoutButton.vue';
 import { useChatsStore } from '@/stores/chats';
+import { useInternalMiscStore } from '@/stores/internalMisc';
 
 import { useUserStore } from '@/stores/user';
 import { ref } from 'vue';
@@ -97,6 +103,8 @@ import { RouterView, useRoute, useRouter } from 'vue-router';
 
 const userStore = useUserStore();
 const chatsStore = useChatsStore();
+const internalMiscStore = useInternalMiscStore();
+
 const forceHideSideBar = ref(false);
 
 const router = useRouter();

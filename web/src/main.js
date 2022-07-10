@@ -16,7 +16,8 @@ import {
     faMessage,
     faTriangleExclamation,
     faUserXmark,
-    faXmark
+    faXmark,
+    faArrowRotateRight
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import FloatingVue from 'floating-vue';
@@ -47,7 +48,8 @@ library.add(
     faCheckCircle,
     faTriangleExclamation,
     faArrowLeft,
-    faArrowRightFromBracket
+    faArrowRightFromBracket,
+    faArrowRotateRight
 );
 app.component('font-awesome-icon', FontAwesomeIcon);
 

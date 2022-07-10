@@ -16,7 +16,9 @@ setInterval(() => internalMiscStore.updateTime(Date.now()), 1000);
 </script>
 
 <template>
+
     <RouterView v-if="userStore.auth.initialized" />
+    <!-- TODO: replace this -->
     <Loading
         :active="!userStore.auth.initialized"
         :is-full-page="true"

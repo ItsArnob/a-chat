@@ -45,7 +45,7 @@ export const initSocket = () => {
             messagesStore.addMessageToStore(messageData, chatId);
         });
         messagesStore.setAllMessagesStale();
-
+        internalMiscStore.setWsNetworkError(false);
         logger.ws.info('Socket connected & authenticated!');
 
         // load data from the buffer if it exists.
@@ -100,8 +100,6 @@ export const initSocket = () => {
     socket.io.on('reconnect', () => {
         logger.ws.info('reconnected!');
         shouldBuffer = true;
-        internalMiscStore.setWsNetworkError(false);
-        if(chatsStore.currentlyOpenChatId) messagesStore.InitMessagesByChatIdIfStale(chatsStore.currentlyOpenChatId, true);
     });
     socket.io.on('reconnect_attempt', () => {
         logger.ws.info('attempting to reconnect...');

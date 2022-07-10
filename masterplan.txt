@@ -21,9 +21,10 @@ CLIENT
 - FIX: for some reason message submit errors aren't being handled (done)
 - FIX: failed messages gets deleted after reconnection. (probably should update messages instead of replacing the array?) (done)
 - ability to resend failed message. (low priority)
-- TODO: handle unhandled http errors
-- TODO: ISSUE: medium: the beginning of your conversation vanishes sometimes after reconnecting, stale isn't removed after reconnection sometimes for the open chat.
+- handle unhandled http errors (done)
+- ISSUE: medium: the beginning of your conversation vanishes sometimes after reconnecting, because of a race condition between the Ready event and the reconnect event. (done)
 - issue: formatDate returns a date when none is provided i believe. (done)
 - ISSUE: URGENT messages are being re-fetched whenever a new message shows up in a fresh chat, probably because the first message is in view when new messages show up. (done)
-
-cmoooon vercel
+- ISSUE: lastmessage is not synced when spamming lots of messages. and doesn't autoscroll
+- TODO: scroll to bottom button
+- TODO: fix autofocus

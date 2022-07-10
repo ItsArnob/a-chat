@@ -36,7 +36,6 @@
     <p class="text-center bg-rose-500" v-if="internalMiscStore.wsNetworkError">
         Reconnecting...
     </p>
-
     <div
         class="h-full pt-2 px-2 overflow-y-auto flex flex-col gap-y-1.5 messages-container"
         ref="messagesContainer"
@@ -47,7 +46,12 @@
             <p>This is the start of your conversation.</p>
         </div>
         <div class='flex flex-col gap-y-1.5 mt-auto'>
-            <Spinner v-if='messageLoading.top' class='w-8 h-8 shrink-0 mr-auto ml-auto my-2'/>
+
+            <Spinner v-if='messageLoading.top && !messageLoadFailed.failed' class='w-8 h-8 shrink-0 mr-auto ml-auto my-2'/>
+            <button @click='loadFailedMessages' v-else-if='messageLoadFailed.failed' class='text-center'>
+                <RefreshIcon class='h-8 w-8 text-rose-400 mx-auto'/>
+                <p class='text-rose-400'>Failed to load messages, click to retry.</p>
+            </button>
             <template v-for='message in messagesStore.getMessagesOfOpenChat' :key='message.id'>
                 <div v-if='message.dateSeparator' class='text-center text-slate-300 or-line-around'> {{ message.dateSeparator }}</div>
                 <message
@@ -88,6 +92,7 @@ import { useMessagesStore } from '@/stores/messages';
 import { useUserStore } from '@/stores/user';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { RefreshIcon } from "@heroicons/vue/outline";
 
 
 const chatsStore = useChatsStore();
@@ -101,12 +106,15 @@ const { activeStatus } = useActiveStatusRef(computed(() => chatsStore.currentlyO
 
 const messagesContainer = ref();
 const messageLoading = ref({ top: false, bottom: false });
+const messageLoadFailed = ref({ failed: false, type: null });
+const firstMessage = ref(null);
 
 let previousObservingFirstMessage;
 let startObservingMessages = false;
 const otherUserId = computed(() => chatsStore.currentlyOpenChat?.recipients?.find(
     (recipient) => recipient.id !== userStore.getUser.id
 ).id)
+
 const autoScrollObserver = new IntersectionObserver(
     (entries) => {
         if (entries[0].isIntersecting) {
@@ -121,23 +129,12 @@ const autoScrollObserver = new IntersectionObserver(
         threshold: 1,
     }
 );
+
 const loadMessageObserver = new IntersectionObserver(async(entries) => {
     if(entries[0].isIntersecting) {
         if(chatsStore.currentlyOpenChat.beginningOfChatReached) return loadMessageObserver.unobserve(entries[0].target);
-        const messageId = entries[0].target.id;
-        messageLoading.value.top = true;
-        const initialHeight = messagesContainer.value.scrollHeight;
-        const result = await messagesStore.loadMessageBeforeId(messageId, route.params.id);
-        messageLoading.value.top = false;
-
-        await nextTick(() => {
-            messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight - initialHeight;
-        });
-
-        if(result?.beginningOfChatReached) {
-            chatsStore.updateChat({ id: route.params.id, beginningOfChatReached: result.beginningOfChatReached });
-            return loadMessageObserver.unobserve(entries[0].target);
-        };
+        firstMessage.value = entries[0].target;
+        loadMessagesBeforeFirstMessage();
     }
 }, {
     root: messagesContainer.value,
@@ -145,19 +142,80 @@ const loadMessageObserver = new IntersectionObserver(async(entries) => {
     threshold: 1,
 });
 
+const observeFirstMessage = async () => {
+    const firstMessage = await nextTick(() => Array.from(document.querySelectorAll('.message-wrapper'))[0]);
+    firstMessage.value = firstMessage;
+    if (previousObservingFirstMessage) loadMessageObserver.unobserve(previousObservingFirstMessage);
+    if (firstMessage) {
+        loadMessageObserver.observe(firstMessage);
+        previousObservingFirstMessage = firstMessage;
+    }
+}
+const loadInitialMessages = () => {
+    messageLoading.value.top = true;
+    messagesStore.InitMessagesByChatIdIfStale(route.params.id).then(async() => {
+        scrollToBottom()
+        if(!chatsStore.currentlyOpenChat.beginningOfChatReached) {
+            startObservingMessages = true;
+            await observeFirstMessage();
+        };
+    }).catch((e) => {
+        console.log(e.message);
+        messageLoadFailed.value = { failed: true, type: 'LoadInitialMessage' };
+    }).finally(() => {
+        messageLoading.value.top = false;
+    })
+};
+const loadMessagesBeforeFirstMessage = () => {
+
+    messageLoading.value.top = true;
+    messageLoadFailed.value = { failed: false, type: null };
+
+    const initialHeight = messagesContainer.value.scrollHeight;
+    messagesStore.loadMessageBeforeId(firstMessage.value.id, route.params.id).then(async(result) => {
+
+        await nextTick(() => {
+            messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight - initialHeight;
+        });
+
+        if(result?.beginningOfChatReached) {
+            chatsStore.updateChat({ id: route.params.id, beginningOfChatReached: result.beginningOfChatReached });
+            return loadMessageObserver.unobserve(firstMessage.value);
+        };
+    }).catch(e => {
+        console.log(e.message);
+        messageLoadFailed.value = { failed: true, type: 'LoadMoreMessages' };
+
+    }).finally(() => {
+        messageLoading.value.top = false;
+    })
+}
+const loadFailedMessages = () => {
+    if(messageLoading.value.top) return;
+    messageLoadFailed.value.failed = false;
+    messageLoading.value.top = true;
+
+    if(messageLoadFailed.value.type === 'LoadInitialMessages') {
+        messageLoadFailed.value.type = null;
+        loadInitialMessages()
+    } else if(messageLoadFailed.value.type === 'LoadMoreMessages') {
+        messageLoadFailed.value.type = null;
+        loadMessagesBeforeFirstMessage()
+    }
+}
+const scrollToBottom = () => {
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+};
+const goHome = () => {
+    router.push('/');
+};
+
+const emit = defineEmits(['toggleSideBar']);
 
 onMounted(async () => {
     chatsStore.setCurrentlyOpenChat(route.params.id);
-    messageLoading.value.top = true;
-    await messagesStore.InitMessagesByChatIdIfStale(route.params.id);
-    messageLoading.value.top = false;
-    scrollToBottom()
-    if(!chatsStore.currentlyOpenChat.beginningOfChatReached) {
-        startObservingMessages = true;
-        await observeFirstMessage();
-    };
+    loadInitialMessages();
 
-    /**/
 });
 
 onBeforeUnmount(() => {
@@ -182,23 +240,25 @@ watch(() => messagesStore.getMessagesOfOpenChat.length, async(newLength, oldLeng
 
 })
 
-const observeFirstMessage = async () => {
-    const firstMessage = await nextTick(() => Array.from(document.querySelectorAll('.message-wrapper'))[0]);
-    if (previousObservingFirstMessage) loadMessageObserver.unobserve(previousObservingFirstMessage);
-    if (firstMessage) {
-        loadMessageObserver.observe(firstMessage);
-        previousObservingFirstMessage = firstMessage;
+internalMiscStore.$onAction(({ after, name, args: disconnected }) => {
+    if(name === 'setWsNetworkError') after(() => {
+       if(!disconnected[0] && messagesStore.isMessagesStale(route.params.id)) {
+           loadInitialMessages()
+       }
+    });
+})
+document.addEventListener('keydown', (event) =>  {
+    event = event || window.event;
+    let isEscape = false;
+    if ("key" in event) {
+        isEscape = (event.key === "Escape" || event.key === "Esc");
+    } else {
+        isEscape = (event.keyCode === 27);
     }
-}
-const scrollToBottom = () => {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
-};
-const goHome = () => {
-    router.push('/');
-};
-
-
-const emit = defineEmits(['toggleSideBar']);
+    if (isEscape) {
+        scrollToBottom()
+    }
+});
 </script>
 <style>
 .or-line-around {

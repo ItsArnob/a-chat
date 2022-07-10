@@ -98,31 +98,35 @@ export const useMessagesStore = defineStore({
                 messages.push(...failedMessages);
             }
             messages.sort((a, b) => (a.id > b.id) - (a.id < b.id));
-            this.messagesByChat[chatId] = { messages };
+            this.messagesByChat[chatId] = { messages }; // note: this also removes the stale field.
             if(messages[messages.length - 1]) chatsStore.setLastMessageId(chatId, messages[messages.length - 1].id);
         },
         addMessagesToStore(data, chatId) {
             let messages = data.map(({ chatId, ...message }) => ({ ...message }));
             this.messagesByChat[chatId].messages.push(...messages);
         },
-        InitMessagesByChatIdIfStale(chatId, keepFailedMessages) {
+        async InitMessagesByChatIdIfStale(chatId, keepFailedMessages) {
             const chatsStore = useChatsStore();
 
             if(this.messagesByChat[chatId]?.stale) {
                 return api.get(`/chat/${chatId}/messages?limit=50`).then(({ data }) => {
                     if(data.length < 50) chatsStore.updateChat({ id: chatId, beginningOfChatReached: data[data.length - 1].id })
                     this.setInitialMessages(data, chatId, keepFailedMessages);
-                });
+                })
             } else if(!this.messagesByChat[chatId]?.messages?.length) {
-                chatsStore.updateChat({ id: chatId, beginningOfChatReached: true })
+                chatsStore.updateChat({ id: chatId, beginningOfChatReached: true });
+                return;
             }
         },
-        loadMessageBeforeId(messageId, chatId) {
+        async loadMessageBeforeId(messageId, chatId) {
             return api.get(`/chat/${chatId}/messages?before=${messageId}&limit=50`).then(({ data }) => {
                 if(!data.length) return { beginningOfChatReached: messageId };
                 this.addMessagesToStore(data, chatId);
                 if(data.length < 50) return { beginningOfChatReached: data[data.length - 1 ].id };
             })
+        },
+        isMessagesStale(chatId) {
+            return !!this.messagesByChat[chatId]?.stale;
         },
         setMessagesStale(chatId, staleOrNot) {
             this.messagesByChat[chatId].stale = staleOrNot;
