@@ -4,6 +4,7 @@
         :class="['text-lg rounded-xl py-2 px-3 max-w-[90%] message', fromSelf ? 'self-end bg-indigo-500' : 'self-start bg-slate-800', fromSelf && error ? 'opacity-70' : '']">
         <p class='whitespace-pre-wrap overflow-wrap-anywhere'> {{ content }}</p>
         <div :class='["text-sm text-white/70", fromSelf ? "text-end" : ""]'>
+            <!-- TODO: make it shorter, currently it looks kinda ugly when date is shown -->
             <p class='inline-block'> {{ formattedTime }} </p>
             <MessageStatus :from-self='fromSelf' :sending='sending' :error='error'/>
         </div>
