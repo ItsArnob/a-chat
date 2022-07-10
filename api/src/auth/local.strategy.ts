@@ -20,8 +20,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
         try {
             return await this.authService.validateUser(username, password);
         } catch (e) {
-            if(e instanceof UnauthorizedException) console.log("incorrect password" + " " + username);
-            if(e instanceof NotFoundException) console.log("user not found" + " " + username);
             if (
                 e instanceof UnauthorizedException ||
                 e instanceof NotFoundException

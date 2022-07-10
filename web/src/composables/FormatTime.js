@@ -13,7 +13,7 @@ export function useFormatTime(time) {
 
     const formattedTime = computed(() => {
         const timestamp = internalMiscStore.time;
-        if(!time.value || !time) return '';
+        if(!time || (isRef(time) && !time.value)) return '';
         return dayjs(isRef(time) ? time.value : time).format(timeFormat(isRef(time) ? time.value : time));
 
     })
