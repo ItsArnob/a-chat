@@ -175,7 +175,7 @@ const loadInitialMessages = () => {
         };
     }).catch((e) => {
         console.log(e.message);
-        messageLoadFailed.value = { failed: true, type: 'LoadInitialMessage' };
+        messageLoadFailed.value = { failed: true, type: 'LoadInitialMessages' };
     }).finally(() => {
         messageLoading.value.top = false;
     })
@@ -208,7 +208,6 @@ const loadMessagesBeforeFirstMessage = () => {
 const loadFailedMessages = () => {
     if(messageLoading.value.top) return;
     messageLoadFailed.value.failed = false;
-    messageLoading.value.top = true;
 
     if(messageLoadFailed.value.type === 'LoadInitialMessages') {
         messageLoadFailed.value.type = null;
@@ -230,8 +229,6 @@ const emit = defineEmits(['toggleSideBar']);
 onMounted(async () => {
     chatsStore.setCurrentlyOpenChat(route.params.id);
     loadInitialMessages();
-    let scrollTop;
-    let a;
     messagesContainer.value.addEventListener('scroll', (event) => {
         const element = event.target
         showScrollToBottomBtn.value = Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop) > 1000;

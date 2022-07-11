@@ -1,4 +1,5 @@
 import { api } from '@/utils/axios';
+import axios from 'axios'
 import { initSocket } from '@/utils/socket';
 import { defineStore } from 'pinia';
 
@@ -34,8 +35,8 @@ export const useUserStore = defineStore({
     },
     actions: {
         async login(username, password) {
-            return api
-                .post('/auth/login', { username, password })
+            return axios
+                .post(`${import.meta.env.VITE_API_URL}/auth/login`, { username, password })
                 .then((res) => {
                     localStorage.setItem('token', res.data.token);
                     initSocket();

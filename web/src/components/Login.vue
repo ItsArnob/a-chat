@@ -1,6 +1,7 @@
 <template>
     <div class="h-full w-full flex">
         <div class="m-auto w-[400px] p-2">
+            <p class='text-rose-400' v-if='isLoggedOut'>You've been logged out.</p>
             <TabGroup>
                 <TabList
                     class="flex space-x-1 rounded-md bg-slate-800 backdrop-blur-sm p-1"
@@ -84,9 +85,10 @@
 import { useUserStore } from '@/stores/user';
 import { clearErrors, FormKit, setErrors } from '@formkit/vue';
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/vue';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const isFormSubmitting = ref(false);
+const isLoggedOut = ref(false);
 const userStore = useUserStore();
 
 async function login(credentials) {
@@ -102,4 +104,10 @@ async function login(credentials) {
             isFormSubmitting.value = false;
         });
 }
+onMounted(() => {
+    if(localStorage.getItem('loggedOut')) {
+        isLoggedOut.value = true;
+        localStorage.removeItem('loggedOut');
+    }
+})
 </script>
