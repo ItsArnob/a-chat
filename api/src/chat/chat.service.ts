@@ -148,13 +148,14 @@ export class ChatService {
         try {
             await session.withTransaction(async () => {
                 await this.mongo.messages.insertOne(message, { session });
-                return this.mongo.chats.updateOne({ _id: chatId }, { $set: { lastMessageId: message._id } }, { session });
+                await this.mongo.chats.updateOne({ _id: chatId }, { $set: { lastMessageId: message._id } }, { session });
+                return;
             })
         }
         finally {
             await session.endSession()
         };
-
+        this.logger.log(`Message saved - ${message._id} - duration - ${Date.now() - decodeTime(message._id)}ms`);
         const { _id: id, ...rest } = message;
         return { ...rest, id, recipients: [authorId, otherUserId as string], timestamp: decodeTime(message._id) };
     }
