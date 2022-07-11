@@ -18,7 +18,7 @@ Setting up your own instance is easy (dockerfile coming soon:tm:)
 
 ### steps
 - create database indexes using the script located at `api/scripts/initDb.js` (well, that currently doesn't exist)
-- create the file `web/.env` and set the `API_URL` environment variable
+- create the file `web/.env` and set the `VITE_API_URL` environment variable
 - create the file `api/.env` and set the following environment variables:
   - `JWT_SECRET` - random string that will be used to sign the jwt tokens (required)
   - `DB_URI` - your mongodb instances connection string (required, defaults to localhost)
