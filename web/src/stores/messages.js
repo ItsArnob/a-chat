@@ -125,6 +125,12 @@ export const useMessagesStore = defineStore({
                 if(data.length < 50) return { beginningOfChatReached: data[data.length - 1 ].id };
             })
         },
+        async resendMessage(messageId, chatId) {
+            const newTime = Date.now();
+            const newId = ulid(newTime);
+            const message = this.addMessageToStore({ id: newId, timestamp: newTime, sending: true, error: false }, chatId, messageId, true);
+            await this.saveMessage(chatId, newId, message.content);
+        },
         isMessagesStale(chatId) {
             return !!this.messagesByChat[chatId]?.stale;
         },

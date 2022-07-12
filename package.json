@@ -3,10 +3,10 @@
     "version": "0.0.1",
     "description": "A chat app",
     "author": "Arnob Roy",
-    "license": "BSD 3-Clause",
+    "license": "BSD-3-Clause",
     "private": true,
     "scripts": {
-        "dev": "yarn concurrently --names api,web \"yarn workspace api start:dev\" \"yarn workspace web dev\"",
+        "dev": "yarn concurrently --names api,web \"yarn workspace api start:dev\" \"yarn workspace web dev --host\"",
         "dev:server:debug": "yarn workspace api start:debug",
         "build": "yarn build:client && yarn build:server",
         "start": "yarn concurrently --names api,web \"yarn start:server\" \"yarn start:client\" ",

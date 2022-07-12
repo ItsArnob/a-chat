@@ -2,7 +2,7 @@
     "name": "web",
     "version": "0.0.1",
     "author": "Arnob Roy",
-    "license": "BSD 3-Clause",
+    "license": "BSD-3-Clause",
     "scripts": {
         "dev": "vite",
         "build": "vite build",
@@ -25,7 +25,9 @@
         "socket.io-client": "^4.5.1",
         "ulid": "^2.3.0",
         "vue": "^3.2.33",
+        "vue-material-design-icons": "^5.1.1",
         "vue-router": "^4.0.14",
+        "vue-simple-context-menu": "^4.0.4",
         "vue-toastification": "^2.0.0-rc.5"
     },
     "devDependencies": {

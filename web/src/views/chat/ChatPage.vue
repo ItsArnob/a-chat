@@ -40,13 +40,14 @@
         <div
             class="h-full pt-2 px-2 overflow-y-auto flex flex-col gap-y-1.5 messages-container"
             ref="messagesContainer"
+            @scroll='autoScrollToBottomButtonHandler'
         >
             <div v-if='chatsStore.currentlyOpenChat?.beginningOfChatReached' class='my-4 flex flex-col items-center'>
                 <Avatar avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/' size='lg' :online='chatsStore.currentlyOpenChat.online === true' />
                 <p class='text-2xl mt-2'>{{ chatsStore.currentlyOpenChat.name }}</p>
                 <p>This is the start of your conversation.</p>
             </div>
-            <div class='flex flex-col gap-y-1.5 mt-auto'>
+            <div class='flex flex-col gap-y-1.5 mt-auto relative'>
 
                 <Spinner v-if='messageLoading.top && !messageLoadFailed.failed' class='w-8 h-8 shrink-0 mr-auto ml-auto my-2'/>
                 <button @click='loadFailedMessages' v-else-if='messageLoadFailed.failed' class='text-center'>
@@ -57,11 +58,14 @@
                     <div v-if='message.dateSeparator' class='text-center text-slate-300 or-line-around'> {{ message.dateSeparator }}</div>
                     <message
                         :id='message.id'
+                        :message-id='message.id'
                         :content='message.content'
                         :from-self='message.fromSelf'
                         :time='message.timestamp'
                         :sending='message.sending'
-                        :error='message.error'/>
+                        :error='message.error'
+                        :chat-id='chatsStore.currentlyOpenChatId'
+                    />
                 </template>
                 <Spinner v-if='messageLoading.bottom' class='w-8 h-8 shrink-0 mr-auto ml-auto my-2'/>
             </div>
@@ -217,6 +221,23 @@ const loadFailedMessages = () => {
         loadMessagesBeforeFirstMessage()
     }
 }
+const escapeListenerHandler = (event) =>  {
+    event = event || window.event;
+    let isEscape = false;
+    if ("key" in event) {
+        isEscape = (event.key === "Escape" || event.key === "Esc");
+    } else {
+        isEscape = (event.keyCode === 27);
+    }
+    if (isEscape) {
+        scrollToBottom()
+    }
+}
+const autoScrollToBottomButtonHandler = (event) => {
+    const element = event.target
+    showScrollToBottomBtn.value = Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop) > 1000;
+};
+
 const scrollToBottom = () => {
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
 };
@@ -229,15 +250,13 @@ const emit = defineEmits(['toggleSideBar']);
 onMounted(async () => {
     chatsStore.setCurrentlyOpenChat(route.params.id);
     loadInitialMessages();
-    messagesContainer.value.addEventListener('scroll', (event) => {
-        const element = event.target
-        showScrollToBottomBtn.value = Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop) > 1000;
-    })
+    document.addEventListener('keydown', escapeListenerHandler);
 
 });
 
 onBeforeUnmount(() => {
     autoScrollObserver.disconnect();
+    document.removeEventListener('keydown', escapeListenerHandler);
     chatsStore.setCurrentlyOpenChat(null);
 });
 watch(() => messagesStore.getMessagesOfOpenChat.length, async(newLength, oldLength) => {
@@ -265,20 +284,11 @@ internalMiscStore.$onAction(({ after, name, args: disconnected }) => {
        }
     });
 })
-document.addEventListener('keydown', (event) =>  {
-    event = event || window.event;
-    let isEscape = false;
-    if ("key" in event) {
-        isEscape = (event.key === "Escape" || event.key === "Esc");
-    } else {
-        isEscape = (event.keyCode === 27);
-    }
-    if (isEscape) {
-        scrollToBottom()
-    }
-});
 </script>
 <style>
+.vue-simple-context-menu {
+    position: fixed !important;
+}
 .or-line-around {
     display: flex;
     flex-direction: row;
