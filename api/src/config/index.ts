@@ -42,5 +42,6 @@ export const config = () => {
         bcryptRounds: process.env.BCRYPT_ROUNDS
             ? parseInt(process.env.BCRYPT_ROUNDS)
             : 10,
+        disableSignup: !!process.env.DISABLE_SIGNUP
     };
 };
