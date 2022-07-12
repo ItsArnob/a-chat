@@ -30,7 +30,7 @@
         help-class="text-gray-400"
     >
         <template #suffix='context'>
-             <button @click='showPassword = !showPassword' type='button' class='text-indigo-300 p-2 bg-slate-800 rounded ml-1.5 focus:ring-2 focus:ring-indigo-400 hover:bg-slate-700 transition'>
+             <button @click='showPassword = !showPassword' type='button' class='text-indigo-300 p-2 bg-slate-800 rounded ml-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 hover:bg-slate-700 transition'>
                  <EyeOffIcon v-if='showPassword' class='w-6 h-6'/>
                  <EyeIcon v-else class='w-6 h-6'/>
 
@@ -52,7 +52,7 @@
 
     >
         <template #suffix='context'>
-            <button @click='showConfirmPassword = !showConfirmPassword' type='button' class='text-indigo-300 p-2 bg-slate-800 rounded ml-1.5 focus:ring-2 focus:ring-indigo-400 hover:bg-slate-700 transition'>
+            <button @click='showConfirmPassword = !showConfirmPassword' type='button' class='text-indigo-300 p-2 bg-slate-800 rounded ml-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 hover:bg-slate-700 transition'>
                 <EyeOffIcon v-if='showConfirmPassword' class='w-6 h-6'/>
                 <EyeIcon v-else class='w-6 h-6'/>
 
