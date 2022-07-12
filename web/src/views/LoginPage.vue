@@ -2,7 +2,7 @@
     <div class="h-full w-full flex">
         <div class="m-auto w-[400px] p-2">
             <p class='text-rose-400' v-if='isLoggedOut'>You've been logged out.</p>
-            <TabGroup>
+            <TabGroup @change="changeTab">
                 <TabList
                     class="flex space-x-1 rounded-md bg-slate-800 backdrop-blur-sm p-1"
                 >
@@ -42,38 +42,23 @@
                             @submit="login"
                             message-class="text-rose-400"
                         >
-                            <FormKit
-                                type="text"
-                                name="username"
-                                label="Username"
-                                validation="required"
-                                help="Enter your username"
-                                label-class="text-lg"
-                                input-class="w-full p-2 rounded outline-none bg-slate-800 focus:ring focus:ring-purple-400"
-                                message-class="text-rose-400"
-                                help-class="text-gray-400"
-                            />
-                            <FormKit
-                                type="password"
-                                name="password"
-                                label="Password"
-                                validation="required"
-                                help="Enter your password"
-                                wrapper-class="mt-2"
-                                label-class="text-lg"
-                                input-class="w-full p-2 rounded outline-none bg-slate-800 focus:ring focus:ring-purple-400"
-                                message-class="text-rose-400"
-                                help-class="text-gray-400"
-                            />
-                            <FormKit
-                                type="submit"
-                                :disabled="isFormSubmitting"
-                                wrapper-class="mt-4 w-full text-center bg-purple-600 rounded"
-                                input-class="font-semibold p-2 w-full outline-none focus:ring rounded focus:ring-purple-400"
-                            >
-                                <p v-if="isFormSubmitting">Logging In...</p>
-                                <p v-else>Log In</p>
-                            </FormKit>
+                           <LoginOrSignupInputs :is-form-submitting='isFormSubmitting'/>
+                        </FormKit>
+                    </TabPanel>
+                    <TabPanel>
+                        <div class='text-lg text-green-400' v-if='isAccountCreated'>
+                                <p class='text-center'>Your account has been created! login using your username and password to get started.</p>
+
+                        </div>
+                        <FormKit
+                            v-else
+                            id="signupForm"
+                            type="form"
+                            :actions="false"
+                            @submit="createAccount"
+                            message-class="text-rose-400"
+                        >
+                            <LoginOrSignupInputs sign-up='true' :is-form-submitting='isFormSubmitting'/>
                         </FormKit>
                     </TabPanel>
                 </TabPanels>
@@ -82,6 +67,7 @@
     </div>
 </template>
 <script setup>
+import LoginOrSignupInputs from '@/components/LoginOrSignupInputs.vue';
 import { useUserStore } from '@/stores/user';
 import { clearErrors, FormKit, setErrors } from '@formkit/vue';
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/vue';
@@ -89,6 +75,8 @@ import { onMounted, ref } from 'vue';
 
 const isFormSubmitting = ref(false);
 const isLoggedOut = ref(false);
+const isAccountCreated = ref(false);
+
 const userStore = useUserStore();
 
 async function login(credentials) {
@@ -103,6 +91,27 @@ async function login(credentials) {
         .finally(() => {
             isFormSubmitting.value = false;
         });
+}
+async function createAccount(credentials) {
+    isFormSubmitting.value = true;
+    clearErrors('signupForm');
+    userStore
+        .createAccount(credentials.username, credentials.password)
+        .then((message) => {
+            if(!message.ok) {
+                if(message.toLowerCase().includes("username")) {
+                    setErrors('signupForm', [], { username: message });
+                }
+                else setErrors('signupForm', [`${message}`])
+            } else {
+                isAccountCreated.value = true;
+            }
+        }).finally(() => {
+            isFormSubmitting.value = false;
+    })
+}
+const changeTab = () => {
+    isAccountCreated.value = false;
 }
 onMounted(() => {
     if(localStorage.getItem('loggedOut')) {

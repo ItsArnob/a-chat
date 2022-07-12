@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import { DATABASE_PROVIDER } from '@/constants';
 import { MongoDB } from '@/database/database.interface';
 import { OnlineSocketsList } from '@/dto/chat.dto';
@@ -16,13 +17,14 @@ import {
     userRelationsProjection
 } from '@/models/user.model';
 import {
-    ConflictException,
+    ConflictException, ImATeapotException,
     Inject,
     Injectable,
     InternalServerErrorException,
     NotFoundException,
     UnauthorizedException
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UpdateFilter } from 'mongodb';
 import { ulid } from 'ulid';
@@ -32,7 +34,8 @@ export class UsersService {
     constructor(
         private jwtService: JwtService,
         @Inject(DATABASE_PROVIDER)
-        private mongo: MongoDB
+        private mongo: MongoDB,
+        private configService: ConfigService
     ) {}
     async findOneByName(username: string): Promise<User> {
         const result = await this.mongo.users.findOne({ username }, {
@@ -329,4 +332,21 @@ export class UsersService {
                 throw new InternalServerErrorException();
         }
     };
+
+    async createUser(username: string, password: string): Promise<void> {
+        if(this.configService.get("disableSignup")) {
+            throw new ImATeapotException("User registration is currently turned off.");
+        }
+        const userExists = await this.mongo.users.findOne<{ _id: string }>({ username }, { projection: { _id: 1 }, collation: { locale: 'en', strength: 2 }});
+        if(userExists) throw new ConflictException("Username is taken.");
+        const passwordHash = await bcrypt.hash(password, this.configService.get("bcryptRounds") as number);
+
+        const id = ulid();
+        await this.mongo.users.insertOne({
+            _id: id,
+            username,
+            passwordHash
+        });
+        return;
+    }
 }

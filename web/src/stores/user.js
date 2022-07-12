@@ -49,6 +49,17 @@ export const useUserStore = defineStore({
                     return e.response?.data?.message || e.message;
                 });
         },
+        async createAccount(username, password) {
+            return axios.post(`${import.meta.env.VITE_API_URL}/auth/signup`, { username, password })
+                .then((res) => {
+                    return { ok: true }
+                }).catch(e => {
+                    if (e.response?.data?.message) {
+                        return Array.isArray(e.response.data.message) ? "Something went wrong, please try again." : e.response.data.message;
+                    }
+                    return e.message;
+                })
+        },
         setUser(user) {
             this.auth.user = user;
             this.auth.initialized = true;
