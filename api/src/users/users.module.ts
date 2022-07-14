@@ -1,3 +1,4 @@
+import { WebsocketModule } from '@/websocket/websocket.module';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -13,6 +14,7 @@ import { UsersService } from './users.service';
                 signOptions: { expiresIn: '9999999h' },
             }),
         }),
+        WebsocketModule
     ],
     providers: [UsersService],
     exports: [UsersService],

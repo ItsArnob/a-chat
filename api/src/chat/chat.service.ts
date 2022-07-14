@@ -22,10 +22,6 @@ export class ChatService {
         private mongo: MongoDB
     ) {}
 
-    async getUserFromSocket(socket: Socket): Promise<User> {
-        const token = socket.handshake.auth.token;
-        return this.usersService.findOneByToken(token);
-    }
 
     /* async getDirectMessageChat(
         user1Id: ObjectId,
@@ -79,40 +75,6 @@ export class ChatService {
         });
     };*/
 
-    async authenticateUserFromSocket(socket: Socket, sockets: OnlineSocketsList) {
-        const user = await this.getUserFromSocket(socket);
-        const chats = await this.getChatsOfUser(user.id);
-
-        const relatedUserIds = user.profile?.relations?.map(user => user.id) || [];
-        const lastMessageIds: string[] = [];
-        // get userIds that are related by chats but aren't friends/outgoings/incomings/etc.
-        chats.forEach(chat => {
-            if(chat.lastMessageId) lastMessageIds.push(chat.lastMessageId);
-            chat.recipients.forEach(recipient => {
-                if(recipient.id === user.id) return;
-
-                const isRecipientInRelatedUsers = relatedUserIds.find(relatedUser => relatedUser === recipient.id);
-                if(isRecipientInRelatedUsers) return;
-
-                relatedUserIds.push(recipient.id);
-
-            });
-        });
-
-        const relatedUsers = relatedUserIds.length
-            ? await this.usersService.findRelatedUsersWithStatus(relatedUserIds, sockets, user.profile?.relations || [])
-            : [];
-
-        const lastMessages = await this.getMessagesById(lastMessageIds);
-        return {
-            id: user.id,
-            username: user.username,
-            users: relatedUsers,
-            chats,
-            lastMessages,
-        }
-
-    }
 
     async getChatsOfUser(userId: string): Promise<Chat[]> {
         const results = await this.mongo.chats.find({

@@ -8,6 +8,7 @@ import { ChatModule } from './chat/chat.module';
 import { config, validate } from './config';
 import { UsersModule } from './users/users.module';
 import { DatabaseModule } from './database/database.module';
+import { WebsocketModule } from './websocket/websocket.module';
 
 @Module({
     imports: [
@@ -58,6 +59,7 @@ import { DatabaseModule } from './database/database.module';
         UsersModule,
         ChatModule,
         DatabaseModule,
+        WebsocketModule,
     ],
 })
 export class AppModule {}

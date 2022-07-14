@@ -1,31 +1,32 @@
 import { WsExceptionFilter } from '@/common/filters/ws-exception.filter';
 import { OnlineSocketsList } from '@/dto/chat.dto';
 import { RelationStatus } from '@/models/user.model';
-import { UsersService } from '@/users/users.service';
-import { HttpException, Logger, NotFoundException, UnauthorizedException, UseFilters } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { WebsocketService } from '@/websocket/websocket.service';
+import {
+    HttpException,
+    Logger,
+    NotFoundException,
+    UnauthorizedException,
+    UseFilters
+} from '@nestjs/common';
 import {
     OnGatewayConnection,
     OnGatewayDisconnect,
     WebSocketGateway,
     WebSocketServer,
-    WsException
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { ChatService } from './chat.service';
 
 @WebSocketGateway({ cors: { origin: true, credentials: true } })
 @UseFilters(WsExceptionFilter)
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     constructor(
-        private chatService: ChatService,
-        private usersService: UsersService,
-        private configService: ConfigService
+        private websocketService: WebsocketService,
     ) {}
     @WebSocketServer()
     server: Server;
 
-    private logger = new Logger(ChatGateway.name);
+    private logger = new Logger(WebsocketGateway.name);
     public sockets: OnlineSocketsList = new Map();
 
     async handleConnection(client: Socket) {
@@ -33,21 +34,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
             const connectedAt = Date.now();
 
-            const data = await this.chatService.authenticateUserFromSocket(client, this.sockets);
+            const data = await this.websocketService.authenticateUserFromSocket(client, this.sockets);
             client.join(data.id);
             client.user = { id: data.id };
             client.emit('Ready', data);
 
             const friendIds = data.users
-                .filter((user) => user.relationship === RelationStatus.Friend)
-                .map((user) => user.id);
+            .filter((user) => user.relationship === RelationStatus.Friend)
+            .map((user) => user.id);
+
             if (friendIds.length) {
-                client.to(friendIds).emit('User:Update', {
-                    user: {
-                        id: client.user.id,
-                        online: true
-                    },
-                });
+                this.websocketService.emitUpdateUser(friendIds, { id: client.user.id, online: true });
             }
             if(this.sockets.has(client.user.id)) {
                 let socket = this.sockets.get(client.user.id) as { sIds: string[], online: Date };
@@ -71,15 +68,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 } else if(e instanceof NotFoundException) {
                     this.logger.warn({ event: `ws_connect_fail,session_use_after_expire`, msg: 'User attempted to use a session token that doesn\'t exist.' });
                 }
-                client.emit('exception', {
-                    type: 'onGatewayConnection',
-                    message: e.message,
-                });
+                this.websocketService.emitException(client, 'onGatewayConnection', e.message)
             } else {
-                client.emit('exception', {
-                    type: 'onGatewayConnection',
-                    message: 'Internal Server Error',
-                });
+                this.websocketService.emitException(client, 'onGatewayConnection', "An unknown error occurred.");
                 this.logger.error({ event: `ws_connect_fail,unknown_error`, msg: `An unknown error occurred.`, err: e });
             }
             client.disconnect();
@@ -105,14 +96,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
                         online,
                     });
                 };
-                const friendIds = await this.usersService.getFriendIds(client.user.id);
+                const friendIds = await this.websocketService.getFriendIdsFromSocket(client);
                 const friendIdsRooms = friendIds.map(id => id);
-                if(typeof online === "object" && friendIdsRooms.length) client.to(friendIdsRooms).emit('User:Update', {
-                    user: {
-                        id: client.user.id,
-                        online
-                    },
-                });
+                if(typeof online === "object" && friendIdsRooms.length) this.websocketService.emitUpdateUser(friendIdsRooms,{
+                    id: client.user.id,
+                    online
+                })
+
                 this.logger.log({ event:`ws_disconnect_success:${client.user.id}`, msg: `User ${client.user.id} disconnected.`, duration: Date.now() - disconnectedAt });
             };
         } catch (e: any) {

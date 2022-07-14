@@ -67,7 +67,7 @@ export const initSocket = () => {
     });
 
     socket.on("Chat:Update", (data) => {
-        chatsStore.updateChat(data)
+        chatsStore.updateChat(data.chat)
     });
 
     socket.on("Message:New", (data) => {

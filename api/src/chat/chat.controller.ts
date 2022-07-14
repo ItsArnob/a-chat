@@ -1,12 +1,12 @@
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { ObjectIdValidationPipe } from '@/common/pipes/objectId-validate.pipe';
 import { UlidValidatorPipe } from '@/common/pipes/ulid-validator.pipe';
-import { GetMessagesQueryDto, messageDto, SaveDirectMessageDto, SaveDirectMessageResponseDto } from '@/dto/chat.dto';
+import { GetMessagesQueryDto, messageDto, SaveDirectMessageResponseDto } from '@/dto/chat.dto';
 import { Message } from '@/models/chat.model';
-import { Body, Controller, Get, NotImplementedException, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { WebsocketService } from '@/websocket/websocket.service';
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
-import { ObjectId } from 'mongodb';
-import { ChatGateway } from './chat.gateway';
+
 import { ChatService } from './chat.service';
 
 @UseGuards(JwtAuthGuard)
@@ -14,7 +14,7 @@ import { ChatService } from './chat.service';
 export class ChatController {
     constructor(
         private chatService: ChatService,
-        private chatGateway: ChatGateway
+        private websocketService: WebsocketService
     ) {}
 
    /* @Post('/:id') // TODO: change this in the client
@@ -44,7 +44,7 @@ export class ChatController {
         @Body() body: messageDto,
     ): Promise<SaveDirectMessageResponseDto> {
         const { recipients, ...data } = await this.chatService.saveDirectMessage(req.user.id, chatId, body.content);
-        this.chatGateway.server.to(recipients).emit("Message:New", { ...data, ackId: body.ackId });
+        this.websocketService.emitNewMessage(recipients, data, body.ackId);
         return { ...data, ackId: body.ackId };
     }
 
