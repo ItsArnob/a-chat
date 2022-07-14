@@ -34,6 +34,7 @@ export const config = () => {
             name: process.env.DB_NAME || "a_chat",
             uri: process.env.DB_URI || "mongodb://localhost:27017"
         },
+        logLevel: process.env.LOG_LEVEL || 'info',
         port: process.env.PORT ? parseInt(process.env.PORT) : 5000,
         discordWebhookURL: process.env.DISCORD_WEBHOOK_URL,
         secureCookie: !!process.env.SECURE_COOKIE,

@@ -2,7 +2,7 @@ import { WsExceptionFilter } from '@/common/filters/ws-exception.filter';
 import { OnlineSocketsList } from '@/dto/chat.dto';
 import { RelationStatus } from '@/models/user.model';
 import { UsersService } from '@/users/users.service';
-import { HttpException, Logger, UseFilters } from '@nestjs/common';
+import { HttpException, Logger, NotFoundException, UnauthorizedException, UseFilters } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
     OnGatewayConnection,
@@ -31,7 +31,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     async handleConnection(client: Socket) {
         try {
 
-            console.time(`handleConnection:${client.id}`);
+            const connectedAt = Date.now();
 
             const data = await this.chatService.authenticateUserFromSocket(client, this.sockets);
             client.join(data.id);
@@ -61,9 +61,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 this.sockets.set(client.user.id, { sIds: [client.id], online: true });
             };
 
-            console.timeEnd(`handleConnection:${client.id}`);
+            this.logger.log({ event:`ws_connect_success:${data.id}`, msg: `User ${data.id} connected.`, duration: Date.now() - connectedAt });
         } catch (e: any) {
-            if (e instanceof WsException || e instanceof HttpException) {
+            if (e instanceof HttpException) {
+                // unauthorized - invalid jwt token
+                // notfound - token not related to a user - invalid token
+                if(e instanceof UnauthorizedException) {
+                    this.logger.warn({ event: `ws_connect_fail,malformed_jwt`, msg: `Malformed jwt provided or invalid signature.` });
+                } else if(e instanceof NotFoundException) {
+                    this.logger.warn({ event: `ws_connect_fail,session_use_after_expire`, msg: 'User attempted to use a session token that doesn\'t exist.' });
+                }
                 client.emit('exception', {
                     type: 'onGatewayConnection',
                     message: e.message,
@@ -73,6 +80,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
                     type: 'onGatewayConnection',
                     message: 'Internal Server Error',
                 });
+                this.logger.error({ event: `ws_connect_fail,unknown_error`, msg: `An unknown error occurred.`, err: e });
             }
             client.disconnect();
         }
@@ -80,6 +88,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     async handleDisconnect(client: Socket): Promise<void> {
         try {
             if(client.user?.id) {
+                const disconnectedAt = Date.now();
                 const socket = this.sockets.get(client.user.id);
                 let online: Date | boolean = true;
                 if(socket) {
@@ -104,10 +113,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
                         online
                     },
                 });
+                this.logger.log({ event:`ws_disconnect_success:${client.user.id}`, msg: `User ${client.user.id} disconnected.`, duration: Date.now() - disconnectedAt });
             };
         } catch (e: any) {
             if (e instanceof HttpException) return;
-            this.logger.error(e);
+            this.logger.error({ event: `ws_disconnect_error,unknown_error`, msg: `An unknown error occurred.`, err: e });
         }
     }
 }

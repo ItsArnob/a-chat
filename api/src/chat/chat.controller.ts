@@ -1,4 +1,4 @@
-import { JwtAuthGuard } from '@/common/jwt-auth.guard';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { ObjectIdValidationPipe } from '@/common/pipes/objectId-validate.pipe';
 import { UlidValidatorPipe } from '@/common/pipes/ulid-validator.pipe';
 import { GetMessagesQueryDto, messageDto, SaveDirectMessageDto, SaveDirectMessageResponseDto } from '@/dto/chat.dto';

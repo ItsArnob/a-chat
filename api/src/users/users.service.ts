@@ -20,7 +20,7 @@ import {
     ConflictException, ImATeapotException,
     Inject,
     Injectable,
-    InternalServerErrorException,
+    InternalServerErrorException, Logger,
     NotFoundException,
     UnauthorizedException
 } from '@nestjs/common';
@@ -31,6 +31,8 @@ import { ulid } from 'ulid';
 
 @Injectable()
 export class UsersService {
+    private logger = new Logger(UsersService.name);
+
     constructor(
         private jwtService: JwtService,
         @Inject(DATABASE_PROVIDER)
@@ -218,7 +220,6 @@ export class UsersService {
                                 ]
                             }
                             await this.mongo.chats.insertOne(newChat, { session })
-
                             const { _id, ...rest } = newChat;
                             chat = {
                                 id: _id,
@@ -282,7 +283,6 @@ export class UsersService {
             (relation) => relation.id === userId
         );
         if (!relationship) throw new NotFoundException('User not found.');
-
         let message: string;
 
         const removeFriendTransaction = async () => {
@@ -329,16 +329,21 @@ export class UsersService {
                 message = 'Friend request declined.';
                 return await removeFriendTransaction();
             default:
+                this.logger.error({ event: `user_friend_remove_failed:${userId},${user.id},invalid_relation_status`, msg: `Invalid relation status found in ${userId} user document.`});
                 throw new InternalServerErrorException();
         }
     };
 
     async createUser(username: string, password: string): Promise<void> {
         if(this.configService.get("disableSignup")) {
+            this.logger.warn({ event: `user_create_fail:${username},signup_disabled`, msg: `user account creation is disabled.` });
             throw new ImATeapotException("User registration is currently turned off.");
         }
         const userExists = await this.mongo.users.findOne<{ _id: string }>({ username }, { projection: { _id: 1 }, collation: { locale: 'en', strength: 2 }});
-        if(userExists) throw new ConflictException("Username is taken.");
+        if(userExists) {
+            this.logger.warn({ event: `user_create_fail:${username},user_exists`, msg: `User account creation attempted with an existing username.` });
+            throw new ConflictException("Username is taken.");
+        }
         const passwordHash = await bcrypt.hash(password, this.configService.get("bcryptRounds") as number);
 
         const id = ulid();
@@ -347,6 +352,7 @@ export class UsersService {
             username,
             passwordHash
         });
+        this.logger.log({ event: `user_created:${id}`, msg: `A new user account was created with the username ${username}.` });
         return;
     }
 }

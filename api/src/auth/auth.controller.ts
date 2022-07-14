@@ -1,5 +1,5 @@
 import { LoginGuard } from '@/common/guards/login.guard';
-import { JwtAuthGuard } from '@/common/jwt-auth.guard';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { GetUserDto, LoginResponseDto, CreateUserDto } from '@/dto/auth.dto';
 import { UsersService } from '@/users/users.service';
 import {
@@ -29,8 +29,7 @@ export class AuthController {
         return this.authService.login(req.user);
     }
 
-
-    @Post("/signup")
+    @Post("signup")
     @HttpCode(HttpStatus.CREATED)
     async createUser(@Body() body: CreateUserDto): Promise<void> {
         return this.usersService.createUser(body.username, body.password);

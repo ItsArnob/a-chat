@@ -1,8 +1,8 @@
 import { LoginDto } from '@/dto/auth.dto';
 import {
     BadRequestException,
-    ExecutionContext,
-    Injectable,
+    ExecutionContext, HttpStatus,
+    Injectable, Logger
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { plainToInstance } from 'class-transformer';
@@ -10,23 +10,26 @@ import { validate } from 'class-validator';
 
 @Injectable()
 export class LoginGuard extends AuthGuard('local') {
+
+    private logger = new Logger(LoginGuard.name);
+
     async canActivate(context: ExecutionContext) {
         const request = context.switchToHttp().getRequest();
         const credentials = plainToInstance(LoginDto, request.body);
-        const errors = await validate(credentials, {
+        const validationErrors = await validate(credentials, {
             validationError: { target: false, value: false },
         });
-        if (errors.length > 0) {
-            let errs: string[] = [];
-            errors.forEach((error) => {
-                errs = [
-                    ...Object.values(
-                        error.constraints as { [type: string]: string }
-                    ),
-                    ...errs,
-                ];
+        if (validationErrors.length > 0) {
+            const errors: any = {};
+            validationErrors.forEach(err => {
+                errors[err.property] = Object.values(err.constraints as any)
+
+            })
+            this.logger.warn({ event: `input_validation_fail,${Object.keys(errors)}`, msg: 'User submitted data that failed validation.'});
+            throw new BadRequestException({ statusCode: HttpStatus.BAD_REQUEST, message: {
+                    validationError: errors
+                }
             });
-            throw new BadRequestException(errs);
         }
         const result = (await super.canActivate(context)) as boolean;
         return result;

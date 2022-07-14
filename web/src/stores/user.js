@@ -1,4 +1,5 @@
 import { api } from '@/utils/axios';
+import formatAxiosError from '@/utils/formatAxiosError';
 import axios from 'axios'
 import { initSocket } from '@/utils/socket';
 import { defineStore } from 'pinia';
@@ -46,7 +47,7 @@ export const useUserStore = defineStore({
                     return { ok: true };
                 })
                 .catch((e) => {
-                    return e.response?.data?.message || e.message;
+                    return formatAxiosError(e);
                 });
         },
         async createAccount(username, password) {
@@ -54,10 +55,7 @@ export const useUserStore = defineStore({
                 .then((res) => {
                     return { ok: true }
                 }).catch(e => {
-                    if (e.response?.data?.message) {
-                        return Array.isArray(e.response.data.message) ? "Something went wrong, please try again." : e.response.data.message;
-                    }
-                    return e.message;
+                    return formatAxiosError(e);
                 })
         },
         setUser(user) {
@@ -87,7 +85,7 @@ export const useUserStore = defineStore({
                     return { ok: res.data.message };
                 })
                 .catch((e) => {
-                    return e.response?.data?.message || e.message;
+                    return formatAxiosError(e);
                 });
         },
         sendFriendRequest: async function (username) {
@@ -107,7 +105,7 @@ export const useUserStore = defineStore({
                     return { ok: res.data.message };
                 })
                 .catch((e) => {
-                    return e.response?.data?.message || e.message;
+                    return formatAxiosError(e)
                 });
         },
         removeOrDeclineFriendRequest(id) {
@@ -118,7 +116,7 @@ export const useUserStore = defineStore({
                     return { ok: res.data.message };
                 })
                 .catch((e) => {
-                    return e.response?.data?.message || e.message;
+                    return formatAxiosError(e)
                 });
         },
         updateUser({ id: userId, ...user }) {
