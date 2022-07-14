@@ -39,8 +39,7 @@ import { WebsocketModule } from './websocket/websocket.module';
                             return {
                                 id: req.id,
                                 method: req.method,
-                                url: req.url,
-                                ip: req.remoteAddress
+                                url: req.url
                             }
                         },
                         res(res) {
