@@ -20,15 +20,27 @@ export const useMessagesStore = defineStore({
 
             if(!state.messagesByChat[chatsStore.currentlyOpenChatId]?.messages?.length) return []
             const sortedMessages = state.messagesByChat[chatsStore.currentlyOpenChatId].messages.sort((a, b) => (a.id > b.id) - (a.id < b.id));
+
+            let lastMessageAuthor;
             return sortedMessages.map((message, index) => {
                     let dataToReturn = { ...message, fromSelf: message.authorId === userStore.getUser.id };
                     if(index > 0) {
                         const prevMessage = sortedMessages[index -1];
                         const prevMessageTime = dayjs(prevMessage.timestamp).format('MMM DD, YYYY');
                         const thisMessageTime = dayjs(dataToReturn.timestamp).format('MMM DD, YYYY');
-                        if(prevMessageTime !== thisMessageTime) dataToReturn.dateSeparator = dayjs(dataToReturn.timestamp).format("dddd, MMM DD, YYYY");
+                        if(prevMessageTime !== thisMessageTime) {
+                            dataToReturn.dateSeparator = dayjs(dataToReturn.timestamp).format("dddd, MMM DD, YYYY");
+                            dataToReturn.showAvatar = true;
+                        }
+
+                        if(message.authorId !== lastMessageAuthor) {
+                            dataToReturn.showAvatar = true;
+                        }
+                        lastMessageAuthor = message.authorId;
                     } else {
                         dataToReturn.dateSeparator = dayjs(dataToReturn.timestamp).format("dddd, MMM DD, YYYY");
+                        dataToReturn.showAvatar = true;
+                        lastMessageAuthor = message.authorId;
                     }
                     return dataToReturn;
                 })

@@ -1,8 +1,12 @@
 <template>
     <div class='message-wrapper flex flex-col'>
         <div :class='["flex gap-2 group", fromSelf ? "flex-row-reverse self-end" : "self-start"]'>
+            <Avatar :invisible='!showAvatar' size='xs' avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/'/>
             <div
-                :class="['text-lg rounded-xl py-2 px-3 message', fromSelf ? 'bg-indigo-500' : 'bg-slate-800', fromSelf && error ? 'opacity-70' : '']">
+                :class="['text-lg rounded-xl py-2 px-3 message',
+                 fromSelf ? 'bg-indigo-500' : 'bg-slate-800',
+                 fromSelf && error ? 'opacity-70' : '',
+                 ]">
                 <p class='whitespace-pre-wrap overflow-wrap-anywhere'> {{ content }}</p>
                 <div :class='["text-sm text-white/70", fromSelf ? "text-end" : ""]'>
                     <!-- TODO: make it shorter, currently it looks kinda ugly when date is shown -->
@@ -25,12 +29,13 @@
     </div>
 </template>
 <script setup>
+import Avatar from '@/components/Avatar.vue';
 import MessageStatus from '@/components/chat/MessageStatus.vue';
 import { useFormatTime } from '@/composables/FormatTime';
 import { useMessagesStore } from '@/stores/messages';
 import RetryIcon from 'vue-material-design-icons/Refresh.vue';
 
-const props = defineProps(['fromSelf', 'content', 'time', 'sending', 'error', 'messageId', 'chatId'])
+const props = defineProps(['fromSelf', 'content', 'time', 'sending', 'error', 'messageId', 'chatId', 'showAvatar'])
 
 const { formattedTime } = useFormatTime(props.time);
 const messagesStore = useMessagesStore();

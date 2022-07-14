@@ -64,6 +64,7 @@
                         :time='message.timestamp'
                         :sending='message.sending'
                         :error='message.error'
+                        :show-avatar='!!message.showAvatar'
                         :chat-id='chatsStore.currentlyOpenChatId'
                     />
                 </template>
