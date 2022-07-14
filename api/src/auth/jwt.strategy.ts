@@ -47,7 +47,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
                 throw new UnauthorizedException(
                     'Invalid authentication token.'
                 );
-            } else throw new InternalServerErrorException();
+            } else {
+                this.logger.error({ event: `system_unknown_error,session_validation`, msg: "An unknown error occurred during session validation.", err: e });
+                throw new InternalServerErrorException();
+            }
         }
     }
 }

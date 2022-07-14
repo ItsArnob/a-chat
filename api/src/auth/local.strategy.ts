@@ -31,6 +31,8 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
                     'Invalid username or password.'
                 );
             } else {
+
+                this.logger.error({ event: `system_unknown_error,authn`, msg: "An unknown error occurred during authentication.", err: e });
                 throw new InternalServerErrorException();
             }
         }
