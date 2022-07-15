@@ -20,7 +20,7 @@
                     />
                 </button>
                 <div class='flex items-center' v-if='chatsStore.currentlyOpenChat'>
-                    <Avatar avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/' size='sm' :online='chatsStore.currentlyOpenChat.online === true'/>
+                    <Avatar size='sm' :online='chatsStore.currentlyOpenChat.online === true'/>
                     <div class='ml-2'>
                         <p
                             class="text-xl leading-none"
@@ -43,7 +43,7 @@
             @scroll='autoScrollToBottomButtonHandler'
         >
             <div v-if='chatsStore.currentlyOpenChat?.beginningOfChatReached' class='my-4 flex flex-col items-center'>
-                <Avatar avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/' size='lg' :online='chatsStore.currentlyOpenChat.online === true' />
+                <Avatar size='lg' :online='chatsStore.currentlyOpenChat.online === true' />
                 <p class='text-2xl mt-2'>{{ chatsStore.currentlyOpenChat.name }}</p>
                 <p>This is the start of your conversation.</p>
             </div>

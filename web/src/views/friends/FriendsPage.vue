@@ -61,7 +61,6 @@
                     <User
                         v-for="friend in userStore.getFriends"
                         :username="friend.username"
-                        avatar="https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/"
                         :online="friend.online"
                         :chat-id="chatsStore.getChatIdOfUserById(friend.id)"
                         :id="friend.id"
@@ -107,7 +106,6 @@
                                 <User
                                     v-for="incomingRequest in userStore.getIncomingRequests"
                                     :username="incomingRequest.username"
-                                    avatar="https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/"
                                     :id="incomingRequest.id"
                                     type="Incoming"
                                 />
@@ -152,7 +150,6 @@
                                 <User
                                     v-for="incomingRequest in userStore.getOutgoingRequests"
                                     :username="incomingRequest.username"
-                                    avatar="https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/"
                                     :id="incomingRequest.id"
                                     type="Outgoing"
                                 />

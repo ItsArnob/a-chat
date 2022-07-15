@@ -1,7 +1,9 @@
 <template>
     <div class='message-wrapper flex flex-col'>
         <div :class='["flex gap-2 group", fromSelf ? "flex-row-reverse self-end" : "self-start"]'>
-            <Avatar :invisible='!showAvatar' size='xs' avatar='https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/'/>
+            <div class='w-[32px] shrink-0'>
+                <Avatar size='xs' v-if='showAvatar' />
+            </div>
             <div
                 :class="['text-lg rounded-xl py-2 px-3 message',
                  fromSelf ? 'bg-indigo-500' : 'bg-slate-800',

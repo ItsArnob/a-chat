@@ -1,7 +1,7 @@
 <template>
-    <div class="relative shrink-0" v-if='!invisible'>
+    <div class="relative shrink-0">
         <img
-            :src="avatar"
+            :src="avatar || 'https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/'"
             class="rounded-full"
             :height="sizePx"
             :width="sizePx"
@@ -16,24 +16,12 @@
             ]"
         ></div>
     </div>
-    <div v-else :class='invisibleClass'></div>
 </template>
 <script setup>
 import { computed } from 'vue';
 
-const props = defineProps(['online', 'avatar', 'hasFocus', 'size', 'invisible']);
+const props = defineProps(['online', 'avatar', 'hasFocus', 'size']);
 
-const invisibleClass = computed(() => {
-    if(props.size === 'xs') {
-        return 'w-[35px]'
-    }
-    else if(props.size === 'sm') {
-        return 'w-[40px]'
-    } else if(props.size === 'lg') {
-        return 'w-[100px]'
-    } else return 'w-[58]'
-
-})
 const sizePx = computed(() => {
     if(props.size === 'xs') {
         return '35'

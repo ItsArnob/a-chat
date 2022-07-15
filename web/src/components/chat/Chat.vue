@@ -9,7 +9,6 @@
     >
         <Avatar
             :online="online"
-            avatar="https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/"
             :has-focus="isOpen"
         />
 
