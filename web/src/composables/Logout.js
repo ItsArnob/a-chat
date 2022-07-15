@@ -14,16 +14,16 @@ export const useLogout = () => {
     const messagesStore = useMessagesStore();
 
     const clearStore = () => {
+        userStore.$reset();
         chatsStore.$reset();
         internalMiscStore.$reset();
         messagesStore.$reset();
-        userStore.$reset();
     };
-    const logout = (deleteSession) => {
+    const logout = async (deleteSession, showLogoutMessage) => {
         const token = localStorage.getItem("token");
         localStorage.removeItem("token");
 
-        router.push("/");
+        await router.push("/");
 
         clearSocket();
         clearStore();
@@ -36,11 +36,11 @@ export const useLogout = () => {
                     }
                 })
                 .finally(() => {
-                    localStorage.setItem("loggedOut", true);
+                    if (showLogoutMessage) localStorage.setItem("loggedOut", true);
                     userStore.setUser(null);
                 });
         } else {
-
+            if (showLogoutMessage) localStorage.setItem("loggedOut", true);
             nextTick(() => userStore.setUser(null));
         }
     };

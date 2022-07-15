@@ -45,8 +45,12 @@ export const useUserStore = defineStore({
                     localStorage.setItem("token", res.data.token);
                     initSocket();
 
-                    const { users, ...user } = res.data;
-                    this.initData({ users, user });
+                    /**
+                     * this will show the loading spinner instead.
+                     * the socket "Ready" event will set the user.
+                     */
+
+                    this.setInitialized(false);
                     return { ok: true };
                 })
                 .catch((e) => {
@@ -66,9 +70,12 @@ export const useUserStore = defineStore({
                     return formatAxiosError(e);
                 });
         },
-        setUser(user) {
+        setUser(user, setInitialized = true) {
             this.auth.user = user;
-            this.auth.initialized = true;
+            this.auth.initialized = setInitialized;
+        },
+        setInitialized(setInitialized) {
+            this.auth.initialized = setInitialized;
         },
         setUsers(users) {
             this.users = users;

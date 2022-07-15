@@ -78,15 +78,12 @@ export const initSocket = () => {
 
     // Error handling.
 
-    socket.on("connect_error", (data) => {
-        if (data.message === "Invalid authentication token.") {
-            logout();
-        } else {
-            logger.ws.error(data.message);
-        }
-    });
     socket.on("exception", (data) => {
+
         if (data.message === "Invalid authentication token.") {
+            if (!userStore.auth.initialized) {
+                userStore.setInitialized(true);
+            }
             logout();
         } else {
             logger.ws.error(data.message);

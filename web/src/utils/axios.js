@@ -27,7 +27,7 @@ api.interceptors.response.use(
         if (error.response.status === 401) {
             console.log(error);
             const { logout } = useLogout();
-            await logout();
+            await logout(false, true);
         }
 
         return Promise.reject(error);
