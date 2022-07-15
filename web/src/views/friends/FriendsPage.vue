@@ -6,7 +6,7 @@
                 class="md:hidden mr-2 leading-none text-emerald-600 hover:text-emerald-500 p-1"
             >
                 <font-awesome-icon
-                    icon="fa-solid fa-angle-left"
+                    icon="fa-solid fa-arrow-left"
                     class="w-6 h-6"
                 />
             </button>
