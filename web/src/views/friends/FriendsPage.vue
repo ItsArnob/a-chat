@@ -214,6 +214,7 @@ import {
     TabPanel,
     TabPanels
 } from "@headlessui/vue";
+import { useTitle } from "@vueuse/core";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
@@ -222,6 +223,7 @@ const router = useRouter();
 const userStore = useUserStore();
 const chatsStore = useChatsStore();
 const toast = useToast();
+useTitle("Friends");
 
 const friendUsername = ref("");
 const sendFriendRequestError = ref("");

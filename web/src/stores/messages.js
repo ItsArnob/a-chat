@@ -211,6 +211,16 @@ export const useMessagesStore = defineStore({
             );
             await this.saveMessage(chatId, newId, message.content);
         },
+        keepLastNMessages(chatId, messagesCount) {
+            if (messagesCount >= this.messagesByChat[chatId].messages.length) return;
+            const chatsStore = useChatsStore();
+
+            const messagesSorted = this.messagesByChat[chatId].messages.sort((a, b) => compareString(a.id, b.id));
+            messagesSorted.splice(0, messagesSorted.length - messagesCount);
+
+            chatsStore.updateChat({ id: chatId, beginningOfChatReached: undefined });
+            this.messagesByChat[chatId].messages = messagesSorted;
+        },
         isMessagesStale(chatId) {
             return !!this.messagesByChat[chatId]?.stale;
         },

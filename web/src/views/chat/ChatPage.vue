@@ -149,6 +149,7 @@ import { useInternalMiscStore } from "@/stores/internalMisc";
 import { useMessagesStore } from "@/stores/messages";
 import { useUserStore } from "@/stores/user";
 import { ArrowSmDownIcon, RefreshIcon } from "@heroicons/vue/outline";
+import { useTitle } from "@vueuse/core";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -162,6 +163,7 @@ const router = useRouter();
 const { activeStatus } = useActiveStatusRef(
     computed(() => chatsStore.currentlyOpenChat?.online)
 );
+useTitle(computed(() => chatsStore.currentlyOpenChat?.name || "Loading chat..."));
 
 const messagesContainer = ref();
 const messageLoading = ref({ top: false, bottom: false });
@@ -176,21 +178,6 @@ const otherUserId = computed(
         chatsStore.currentlyOpenChat?.recipients?.find(
             (recipient) => recipient.id !== userStore.getUser.id
         ).id
-);
-
-const autoScrollObserver = new IntersectionObserver(
-    (entries) => {
-        if (entries[0].isIntersecting) {
-            messagesContainer.value.scrollTop =
-                messagesContainer.value.scrollHeight;
-        }
-        autoScrollObserver.unobserve(entries[0].target);
-    },
-    {
-        root: messagesContainer.value,
-        rootMargin: "0px",
-        threshold: 1,
-    }
 );
 
 const loadMessageObserver = new IntersectionObserver(
@@ -325,8 +312,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-    autoScrollObserver.disconnect();
     document.removeEventListener("keydown", escapeListenerHandler);
+    messagesStore.keepLastNMessages(chatsStore.currentlyOpenChatId, 50);
     chatsStore.setCurrentlyOpenChat(null);
 });
 watch(
@@ -335,12 +322,15 @@ watch(
         // for autoscroll on new message (only if its in view).
         if (newLength > oldLength) {
             // new message has been added to the store.
+            const distanceFromBottom = Math.abs(
+                messagesContainer.value.scrollHeight - messagesContainer.value.clientHeight - messagesContainer.value.scrollTop
+            );
+            console.log(distanceFromBottom);
+            if (distanceFromBottom < 30) {  // using 30px here just for some headroom
 
-            const lastMessage = Array.from(
-                document.querySelectorAll(".message-wrapper")
-            ).pop();
+                nextTick(() => messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight);
+            }
 
-            if (lastMessage) autoScrollObserver.observe(lastMessage);
         }
 
         // observe the very first message that's rendered, so we can load more message before that when its in view.

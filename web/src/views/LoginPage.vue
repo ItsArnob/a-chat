@@ -83,13 +83,17 @@ import LoginOrSignupInputs from "@/components/LoginOrSignupInputs.vue";
 import { useUserStore } from "@/stores/user";
 import { clearErrors, FormKit, setErrors } from "@formkit/vue";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/vue";
-import { onMounted, ref } from "vue";
+import { useTitle } from "@vueuse/core";
+import { computed, onMounted, ref } from "vue";
 
 const isFormSubmitting = ref(false);
 const isLoggedOut = ref(false);
 const isAccountCreated = ref(false);
+const isSignupFormOpen = ref(false);
 
 const userStore = useUserStore();
+useTitle(computed(() => isSignupFormOpen.value ? "Create an account" : "Log In"));
+
 
 async function login(credentials) {
     isFormSubmitting.value = true;
@@ -98,7 +102,7 @@ async function login(credentials) {
     userStore
         .login(credentials.username, credentials.password)
         .then((message) => {
-            if (!message.ok) setErrors("loginForm", [`${message}`]);
+            if (!message.ok) setErrors("loginForm", [`${ message }`]);
         })
         .finally(() => {
             isFormSubmitting.value = false;
@@ -122,9 +126,13 @@ async function createAccount(credentials) {
             isFormSubmitting.value = false;
         });
 }
-const changeTab = () => {
+
+const changeTab = (index) => {
+    if (index === 1) isSignupFormOpen.value = true;
+    else isSignupFormOpen.value = false;
     isAccountCreated.value = false;
 };
+
 onMounted(() => {
     if (localStorage.getItem("loggedOut")) {
         isLoggedOut.value = true;

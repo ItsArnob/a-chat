@@ -33,7 +33,9 @@
 <script setup>
 import { useMessagesStore } from "@/stores/messages";
 import { ChevronRightIcon, UploadIcon } from "@heroicons/vue/outline";
+import { onStartTyping } from "@vueuse/core";
 import { computed, defineEmits, nextTick, ref } from "vue";
+
 
 const props = defineProps(["chatId"]);
 const textarea = ref();
@@ -68,4 +70,9 @@ const submitMessage = async () => {
     await nextTick(resizeTextArea);
     messagesStore.saveMessage(props.chatId, ackId, messageCloned);
 };
+
+onStartTyping(() => {
+    if (!textarea.value.active) textarea.value.focus();
+});
+
 </script>
