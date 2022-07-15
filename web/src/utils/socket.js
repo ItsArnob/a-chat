@@ -1,3 +1,4 @@
+import { useLogout } from "@/composables/Logout";
 import { useChatsStore } from "@/stores/chats";
 import { useInternalMiscStore } from "@/stores/internalMisc";
 import { useMessagesStore } from "@/stores/messages";
@@ -15,6 +16,7 @@ export const initSocket = () => {
     const chatsStore = useChatsStore();
     const internalMiscStore = useInternalMiscStore();
     const messagesStore = useMessagesStore();
+    const { logout } = useLogout();
 
     let buffer = [];
     let shouldBuffer = true;
@@ -78,18 +80,14 @@ export const initSocket = () => {
 
     socket.on("connect_error", (data) => {
         if (data.message === "Invalid authentication token.") {
-            localStorage.removeItem("token");
-            userStore.setUser(null);
-            logger.ws.info("Socket unauthorized.");
+            logout();
         } else {
             logger.ws.error(data.message);
         }
     });
     socket.on("exception", (data) => {
         if (data.message === "Invalid authentication token.") {
-            localStorage.removeItem("token");
-            userStore.setUser(null);
-            logger.ws.info("Socket unauthorized.");
+            logout();
         } else {
             logger.ws.error(data.message);
         }
