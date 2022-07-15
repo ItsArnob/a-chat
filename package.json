@@ -25,6 +25,6 @@
         "random-sentence": "^1.0.4"
     },
     "devDependencies": {
-        "prettier": "^2.7.0"
+        "prettier": "^2.7.1"
     }
 }
