@@ -1,6 +1,6 @@
-import { useUserStore } from '@/stores/user';
-import { createRouter, createWebHistory } from 'vue-router';
-import { routes } from './routes';
+import { useUserStore } from "@/stores/user";
+import { createRouter, createWebHistory } from "vue-router";
+import { routes } from "./routes";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,7 +24,7 @@ router.beforeEach(async (to, from, next) => {
     });
     await isinitialized;
     if (to.meta.auth && !userStore.auth.user) {
-        next({ path: '/' });
+        next({ path: "/" });
     } else next();
 });
 

@@ -199,11 +199,11 @@
     </div>
 </template>
 <script setup>
-import User from '@/components/Friends/User.vue';
-import Spinner from '@/components/icons/Spinner.vue';
+import User from "@/components/Friends/User.vue";
+import Spinner from "@/components/icons/Spinner.vue";
 
-import { useChatsStore } from '@/stores/chats';
-import { useUserStore } from '@/stores/user';
+import { useChatsStore } from "@/stores/chats";
+import { useUserStore } from "@/stores/user";
 import {
     Disclosure,
     DisclosureButton,
@@ -213,21 +213,21 @@ import {
     TabList,
     TabPanel,
     TabPanels
-} from '@headlessui/vue';
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useToast } from 'vue-toastification';
+} from "@headlessui/vue";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
 
 const router = useRouter();
 const userStore = useUserStore();
 const chatsStore = useChatsStore();
 const toast = useToast();
 
-const friendUsername = ref('');
-const sendFriendRequestError = ref('');
+const friendUsername = ref("");
+const sendFriendRequestError = ref("");
 const isRequestSending = ref(false);
 
-const goHome = () => router.push('/');
+const goHome = () => router.push("/");
 const sendFriendRequest = async () => {
     isRequestSending.value = true;
     const response = await userStore.sendFriendRequest(
@@ -241,6 +241,6 @@ const sendFriendRequest = async () => {
 
 const setFriendUsername = (e) => {
     friendUsername.value = e.target.value;
-    sendFriendRequestError.value = '';
+    sendFriendRequestError.value = "";
 };
 </script>

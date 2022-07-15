@@ -13,7 +13,9 @@
             <p class="md:text-xl break-all flex shrink-0">
                 {{ username }}
             </p>
-            <p class='text-sm leading-none text-slate-300'>{{ activeStatus }}</p>
+            <p class="text-sm leading-none text-slate-300">
+                {{ activeStatus }}
+            </p>
         </div>
         <div class="ml-auto leading-none flex gap-2 items-center">
             <button
@@ -145,25 +147,24 @@
     </div>
 </template>
 <script setup>
-import Avatar from '@/components/Avatar.vue';
-import Spinner from '@/components/icons/Spinner.vue';
-import { useActiveStatusRef } from '@/composables/ActiveStatus';
-import { useChatsStore } from '@/stores/chats';
-import { useUserStore } from '@/stores/user';
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
-import { computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useToast } from 'vue-toastification';
-
+import Avatar from "@/components/Avatar.vue";
+import Spinner from "@/components/icons/Spinner.vue";
+import { useActiveStatusRef } from "@/composables/ActiveStatus";
+import { useChatsStore } from "@/stores/chats";
+import { useUserStore } from "@/stores/user";
+import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from "@headlessui/vue";
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
 
 const props = defineProps([
-    'username',
-    'avatar',
-    'online',
-    'id',
-    'status',
-    'chatId',
-    'type',
+    "username",
+    "avatar",
+    "online",
+    "id",
+    "status",
+    "chatId",
+    "type",
 ]);
 
 const router = useRouter();
@@ -176,7 +177,6 @@ const acceptFriendRequestLoading = ref(false);
 const openChatLoading = ref(false);
 const removeFriendLoading = ref(false);
 const isRemoveConfirmationDialogOpen = ref(false);
-
 
 function closeRemoveConfirmation() {
     if (!removeFriendLoading.value)
@@ -194,7 +194,7 @@ const openChat = async () => {
     )
         return;
     if (props.chatId)
-        return router.push({ name: 'chat', params: { id: props.chatId } });
+        return router.push({ name: "chat", params: { id: props.chatId } });
 
     // NOTE: was used to create chat back when the api didn't create them automatically.
 
@@ -216,7 +216,7 @@ const removeFriend = async () => {
     } else toast.error(response);
 };
 const deleteFriend = async () => {
-    if (props.type === 'Friend') return openRemoveConfirmation();
+    if (props.type === "Friend") return openRemoveConfirmation();
     await removeFriend();
 };
 const acceptFriendRequest = async () => {

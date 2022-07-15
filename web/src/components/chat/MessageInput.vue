@@ -8,7 +8,7 @@
             </button>
             <textarea
                 ref="textarea"
-                :value='message'
+                :value="message"
                 rows="1"
                 @input="handleInputTextarea"
                 @keydown="shouldSubmit"
@@ -18,7 +18,12 @@
             <button
                 @click="submitMessage"
                 :disabled="!canSubmit"
-                :class="['self-end p-2 rounded-full ml-2 mb-[0.10rem]', canSubmit ? 'bg-indigo-500 hover:bg-indigo-400' : 'bg-gray-800 hover:bg-gray-600']"
+                :class="[
+                    'self-end p-2 rounded-full ml-2 mb-[0.10rem]',
+                    canSubmit
+                        ? 'bg-indigo-500 hover:bg-indigo-400'
+                        : 'bg-gray-800 hover:bg-gray-600',
+                ]"
             >
                 <ChevronRightIcon class="h-5 w-5" />
             </button>
@@ -26,41 +31,40 @@
     </div>
 </template>
 <script setup>
-import { useMessagesStore } from '@/stores/messages';
-import { ChevronRightIcon, UploadIcon } from '@heroicons/vue/outline';
-import { computed, defineEmits, nextTick, ref } from 'vue';
+import { useMessagesStore } from "@/stores/messages";
+import { ChevronRightIcon, UploadIcon } from "@heroicons/vue/outline";
+import { computed, defineEmits, nextTick, ref } from "vue";
 
-const props = defineProps(['chatId']);
+const props = defineProps(["chatId"]);
 const textarea = ref();
-const message = ref('');
+const message = ref("");
 
 const canSubmit = computed(() => !!message.value.trim());
 
 const messagesStore = useMessagesStore();
 
-const emit = defineEmits(['scrollToBottom']);
+const emit = defineEmits(["scrollToBottom"]);
 
 const resizeTextArea = () => {
-    textarea.value.style.height = 'auto';
+    textarea.value.style.height = "auto";
     textarea.value.style.height = `${textarea.value.scrollHeight}px`;
 };
 const shouldSubmit = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         message.value.trim() && submitMessage();
     }
 };
 const handleInputTextarea = (ev) => {
-    resizeTextArea()
-    message.value = ev.target.value
-
-}
+    resizeTextArea();
+    message.value = ev.target.value;
+};
 const submitMessage = async () => {
     const messageCloned = message.value.trim();
-    message.value = '';
+    message.value = "";
     textarea.value.focus();
     const ackId = messagesStore.appendSelfMessage(props.chatId, messageCloned);
-    await nextTick(() => emit('scrollToBottom'));
+    await nextTick(() => emit("scrollToBottom"));
     await nextTick(resizeTextArea);
     messagesStore.saveMessage(props.chatId, ackId, messageCloned);
 };

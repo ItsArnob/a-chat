@@ -1,10 +1,10 @@
 module.exports = {
-    mode: 'jit',
-    content: ['./src/**/*.vue'],
+    mode: "jit",
+    content: ["./src/**/*.vue"],
     theme: {
         extend: {
             fontFamily: {
-                sans: 'poppins, sans-serif',
+                sans: "poppins, sans-serif",
             },
         },
     },

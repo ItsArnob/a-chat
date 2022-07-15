@@ -1,23 +1,22 @@
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { ObjectIdValidationPipe } from '@/common/pipes/objectId-validate.pipe';
-import { UlidValidatorPipe } from '@/common/pipes/ulid-validator.pipe';
-import { GetMessagesQueryDto, messageDto, SaveDirectMessageResponseDto } from '@/dto/chat.dto';
-import { Message } from '@/models/chat.model';
-import { WebsocketService } from '@/websocket/websocket.service';
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
+import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { UlidValidatorPipe } from "@/common/pipes/ulid-validator.pipe";
+import { GetMessagesQueryDto, messageDto, SaveDirectMessageResponseDto } from "@/dto/chat.dto";
+import { Message } from "@/models/chat.model";
+import { WebsocketService } from "@/websocket/websocket.service";
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from "@nestjs/common";
+import { Request } from "express";
 
-import { ChatService } from './chat.service';
+import { ChatService } from "./chat.service";
 
 @UseGuards(JwtAuthGuard)
-@Controller('chat')
+@Controller("chat")
 export class ChatController {
     constructor(
         private chatService: ChatService,
         private websocketService: WebsocketService
     ) {}
 
-   /* @Post('/:id') // TODO: change this in the client
+    /* @Post('/:id') // TODO: change this in the client
     async createChat(
         @Req() req: Request,
         @Query("type") type: string,
@@ -40,10 +39,15 @@ export class ChatController {
     @Post("/:chatId/messages")
     async saveDirectMessage(
         @Req() req: Request,
-        @Param('chatId', new UlidValidatorPipe()) chatId: string,
-        @Body() body: messageDto,
+        @Param("chatId", new UlidValidatorPipe()) chatId: string,
+        @Body() body: messageDto
     ): Promise<SaveDirectMessageResponseDto> {
-        const { recipients, ...data } = await this.chatService.saveDirectMessage(req.user.id, chatId, body.content);
+        const { recipients, ...data } =
+            await this.chatService.saveDirectMessage(
+                req.user.id,
+                chatId,
+                body.content
+            );
         this.websocketService.emitNewMessage(recipients, data, body.ackId);
         return { ...data, ackId: body.ackId };
     }
@@ -51,11 +55,16 @@ export class ChatController {
     @Get("/:chatId/messages")
     async getMessages(
         @Req() req: Request,
-        @Param('chatId', new UlidValidatorPipe()) chatId: string,
+        @Param("chatId", new UlidValidatorPipe()) chatId: string,
         @Query() query: GetMessagesQueryDto
     ): Promise<Message[]> {
-
-        return this.chatService.getMessages(req.user.id, chatId, query.before, query.after, query.limit);
+        return this.chatService.getMessages(
+            req.user.id,
+            chatId,
+            query.before,
+            query.after,
+            query.limit
+        );
     }
     // TODO: one for setting nickname
 }

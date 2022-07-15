@@ -1,8 +1,5 @@
 <template>
-    <button
-        @click="logout"
-        class="text-emerald-600 hover:text-emerald-500"
-    >
+    <button @click="logout" class="text-emerald-600 hover:text-emerald-500">
         <font-awesome-icon
             icon="fa-solid fa-arrow-right-from-bracket"
             class="w-7 h-7"
@@ -11,9 +8,7 @@
 </template>
 
 <script setup>
+import { useLogout } from "@/composables/Logout";
 
-import { useLogout } from '@/composables/Logout';
-
-const { logout } = useLogout()
-
+const { logout } = useLogout();
 </script>

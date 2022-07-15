@@ -1,11 +1,9 @@
-import { ChatService } from '@/chat/chat.service';
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import { IoAdapter } from '@nestjs/platform-socket.io';
-import { WsException } from '@nestjs/websockets';
-import { Server, ServerOptions } from 'socket.io';
+import { ChatService } from "@/chat/chat.service";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { IoAdapter } from "@nestjs/platform-socket.io";
+import { Server, ServerOptions } from "socket.io";
 
-const { instrument } = require('@socket.io/admin-ui');
+const { instrument } = require("@socket.io/admin-ui");
 
 export class CustomIoAdapter extends IoAdapter {
     constructor(private app: NestExpressApplication) {

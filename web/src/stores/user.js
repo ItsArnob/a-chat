@@ -1,11 +1,11 @@
-import { api } from '@/utils/axios';
-import formatAxiosError from '@/utils/formatAxiosError';
-import axios from 'axios'
-import { initSocket } from '@/utils/socket';
-import { defineStore } from 'pinia';
+import { api } from "@/utils/axios";
+import formatAxiosError from "@/utils/formatAxiosError";
+import { initSocket } from "@/utils/socket";
+import axios from "axios";
+import { defineStore } from "pinia";
 
 export const useUserStore = defineStore({
-    id: 'user',
+    id: "user",
     state: () => ({
         auth: {
             user: null,
@@ -19,27 +19,30 @@ export const useUserStore = defineStore({
             state.users.find((user) => user.id === userId),
         canSendMessageToUser() {
             return (userId) =>
-                this.getUserById(userId)?.relationship === 'Friend';
+                this.getUserById(userId)?.relationship === "Friend";
         },
         getFriends: (state) =>
             state.users
-                ?.filter((user) => user.relationship === 'Friend')
+                ?.filter((user) => user.relationship === "Friend")
                 .sort(new Intl.Collator().compare),
         getIncomingRequests: (state) =>
             state.users
-                .filter((user) => user.relationship === 'Incoming')
+                .filter((user) => user.relationship === "Incoming")
                 .sort(new Intl.Collator().compare),
         getOutgoingRequests: (state) =>
             state.users
-                .filter((user) => user.relationship === 'Outgoing')
+                .filter((user) => user.relationship === "Outgoing")
                 .sort(new Intl.Collator().compare),
     },
     actions: {
         async login(username, password) {
             return axios
-                .post(`${import.meta.env.VITE_API_URL}/auth/login`, { username, password })
+                .post(`${import.meta.env.VITE_API_URL}/auth/login`, {
+                    username,
+                    password,
+                })
                 .then((res) => {
-                    localStorage.setItem('token', res.data.token);
+                    localStorage.setItem("token", res.data.token);
                     initSocket();
 
                     const { users, ...user } = res.data;
@@ -51,12 +54,17 @@ export const useUserStore = defineStore({
                 });
         },
         async createAccount(username, password) {
-            return axios.post(`${import.meta.env.VITE_API_URL}/auth/signup`, { username, password })
-                .then((res) => {
-                    return { ok: true }
-                }).catch(e => {
-                    return formatAxiosError(e);
+            return axios
+                .post(`${import.meta.env.VITE_API_URL}/auth/signup`, {
+                    username,
+                    password,
                 })
+                .then((res) => {
+                    return { ok: true };
+                })
+                .catch((e) => {
+                    return formatAxiosError(e);
+                });
         },
         setUser(user) {
             this.auth.user = user;
@@ -73,9 +81,9 @@ export const useUserStore = defineStore({
             return api
                 .put(`/users/${id}/friend?type=id`)
                 .then((res) => {
-                    if (res.data.message === 'Friend request accepted.') {
+                    if (res.data.message === "Friend request accepted.") {
                         this.setUserRelatedToFriend(id);
-                    } else if (res.data.message === 'Friend request sent.') {
+                    } else if (res.data.message === "Friend request sent.") {
                         // gonna deal with that 0.000000000000001% that this ever SOMEHOW happens.
                         this.setUserRelatedToOutgoingOrAddUser(
                             id,
@@ -92,20 +100,20 @@ export const useUserStore = defineStore({
             return api
                 .put(`/users/${username}/friend`)
                 .then((res) => {
-                    if (res.data.message === 'Friend request sent.') {
+                    if (res.data.message === "Friend request sent.") {
                         this.setUserRelatedToOutgoingOrAddUser(
                             res.data.user.id,
                             res.data.user.username
                         );
                     } else if (
-                        res.data.message === 'Friend request accepted.'
+                        res.data.message === "Friend request accepted."
                     ) {
                         this.setUserRelatedToFriend(res.data.user.id);
                     }
                     return { ok: res.data.message };
                 })
                 .catch((e) => {
-                    return formatAxiosError(e)
+                    return formatAxiosError(e);
                 });
         },
         removeOrDeclineFriendRequest(id) {
@@ -116,7 +124,7 @@ export const useUserStore = defineStore({
                     return { ok: res.data.message };
                 })
                 .catch((e) => {
-                    return formatAxiosError(e)
+                    return formatAxiosError(e);
                 });
         },
         updateUser({ id: userId, ...user }) {
@@ -132,7 +140,7 @@ export const useUserStore = defineStore({
             if (userExists) {
                 this.users = this.users.map((user) => {
                     if (user.id === id) {
-                        user.relationship = 'Outgoing';
+                        user.relationship = "Outgoing";
                     }
                     return user;
                 });
@@ -140,7 +148,7 @@ export const useUserStore = defineStore({
                 this.users.push({
                     id: id,
                     username: username,
-                    relationship: 'Outgoing',
+                    relationship: "Outgoing",
                 });
             }
         },
@@ -149,7 +157,7 @@ export const useUserStore = defineStore({
             if (userExists) {
                 this.users = this.users.map((user) => {
                     if (user.id === id) {
-                        user.relationship = 'Incoming';
+                        user.relationship = "Incoming";
                     }
                     return user;
                 });
@@ -157,14 +165,14 @@ export const useUserStore = defineStore({
                 this.users.push({
                     id: id,
                     username: username,
-                    relationship: 'Incoming',
+                    relationship: "Incoming",
                 });
             }
         },
         setUserRelatedToFriend(id) {
             this.users = this.users.map((user) => {
                 if (user.id === id) {
-                    user.relationship = 'Friend';
+                    user.relationship = "Friend";
                 }
                 return user;
             });
@@ -172,7 +180,7 @@ export const useUserStore = defineStore({
         setUserRelationToNone(id) {
             this.users = this.users.map((user) => {
                 if (user.id === id) {
-                    user.relationship = 'None';
+                    user.relationship = "None";
                 }
                 return user;
             });

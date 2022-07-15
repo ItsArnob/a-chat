@@ -1,10 +1,10 @@
-import { useChatsStore } from '@/stores/chats';
-import { useInternalMiscStore } from '@/stores/internalMisc';
-import { useMessagesStore } from '@/stores/messages';
-import { useUserStore } from '@/stores/user';
-import io from 'socket.io-client';
+import { useChatsStore } from "@/stores/chats";
+import { useInternalMiscStore } from "@/stores/internalMisc";
+import { useMessagesStore } from "@/stores/messages";
+import { useUserStore } from "@/stores/user";
+import io from "socket.io-client";
 
-import { logger } from './logger';
+import { logger } from "./logger";
 
 export const socket = io(import.meta.env.VITE_API_URL, {
     auth: { token: localStorage.token },
@@ -23,14 +23,14 @@ export const initSocket = () => {
     socket.removeAllListeners();
 
     socket.onAny((name, ...args) => {
-        if (name === 'Ready') return;
+        if (name === "Ready") return;
 
         if (shouldBuffer) {
             buffer.push({ name, args });
             logger.ws.info(`Buffered ${name} event.`);
         }
     });
-    socket.on('Ready', (data) => {
+    socket.on("Ready", (data) => {
         userStore.initData({
             users: data.users,
             user: {
@@ -41,12 +41,11 @@ export const initSocket = () => {
         });
         chatsStore.setChats(data.chats);
         data.lastMessages?.forEach(({ chatId, ...messageData }) => {
-
             messagesStore.addMessageToStore(messageData, chatId);
         });
         messagesStore.setAllMessagesStale();
         internalMiscStore.setWsNetworkError(false);
-        logger.ws.info('Socket connected & authenticated!');
+        logger.ws.info("Socket connected & authenticated!");
 
         shouldBuffer = false;
         // load data from the buffer if it exists.
@@ -60,54 +59,52 @@ export const initSocket = () => {
             buffer = [];
         }
     });
-    socket.on('Ready', () => {});
+    socket.on("Ready", () => {});
 
-    socket.on('User:Update', (data) => {
+    socket.on("User:Update", (data) => {
         userStore.updateUser(data.user);
     });
 
     socket.on("Chat:Update", (data) => {
-        chatsStore.updateChat(data.chat)
+        chatsStore.updateChat(data.chat);
     });
 
     socket.on("Message:New", (data) => {
         const { ackId, chatId, ...rest } = data;
         messagesStore.addMessageToStore(rest, chatId, ackId);
-    })
-
-
+    });
 
     // Error handling.
 
-    socket.on('connect_error', (data) => {
-        if (data.message === 'Invalid authentication token.') {
-            localStorage.removeItem('token');
+    socket.on("connect_error", (data) => {
+        if (data.message === "Invalid authentication token.") {
+            localStorage.removeItem("token");
             userStore.setUser(null);
-            logger.ws.info('Socket unauthorized.');
+            logger.ws.info("Socket unauthorized.");
         } else {
             logger.ws.error(data.message);
         }
     });
     socket.on("exception", (data) => {
-        if (data.message === 'Invalid authentication token.') {
-            localStorage.removeItem('token');
+        if (data.message === "Invalid authentication token.") {
+            localStorage.removeItem("token");
             userStore.setUser(null);
-            logger.ws.info('Socket unauthorized.');
+            logger.ws.info("Socket unauthorized.");
         } else {
             logger.ws.error(data.message);
         }
-    })
-    socket.io.on('reconnect', () => {
-        logger.ws.info('reconnected!');
+    });
+    socket.io.on("reconnect", () => {
+        logger.ws.info("reconnected!");
         shouldBuffer = true;
     });
-    socket.io.on('reconnect_attempt', () => {
-        logger.ws.info('attempting to reconnect...');
+    socket.io.on("reconnect_attempt", () => {
+        logger.ws.info("attempting to reconnect...");
         internalMiscStore.setWsNetworkError(true);
     });
     socket.on("disconnect", (data) => {
         messagesStore.setAllMessagesStale();
-    })
+    });
     socket.connect();
 };
 

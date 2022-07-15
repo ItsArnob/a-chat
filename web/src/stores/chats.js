@@ -1,19 +1,25 @@
-import { useMessagesStore } from '@/stores/messages';
-import { useUserStore } from '@/stores/user';
-import { api } from '@/utils/axios';
-import { defineStore } from 'pinia';
+import { useMessagesStore } from "@/stores/messages";
+import { useUserStore } from "@/stores/user";
+import { api } from "@/utils/axios";
+import { defineStore } from "pinia";
 
 export const useChatsStore = defineStore({
-    id: 'chats',
+    id: "chats",
     state: () => ({
         currentlyOpenChatId: null,
         chats: [],
     }),
     getters: {
         chatsWithProperData(state) {
-            return state.chats.map((chat) => {
-                return this.getChatById(chat.id);
-            }).sort((a, b) => (b.lastMessage?.id > a.lastMessage?.id) - (b.lastMessage?.id < a.lastMessage?.id));
+            return state.chats
+                .map((chat) => {
+                    return this.getChatById(chat.id);
+                })
+                .sort(
+                    (a, b) =>
+                        (b.lastMessage?.id > a.lastMessage?.id) -
+                        (b.lastMessage?.id < a.lastMessage?.id)
+                );
         },
         getChatById(state) {
             return (id) => {
@@ -21,7 +27,7 @@ export const useChatsStore = defineStore({
                 const messagesStore = useMessagesStore();
 
                 const chat = state.chats.find(
-                    (chat) => chat.id === id && chat.chatType === 'Direct'
+                    (chat) => chat.id === id && chat.chatType === "Direct"
                 ); // TODO: ignoring other types of chats. fix this in the future.
                 if (!chat) return;
 
@@ -39,10 +45,13 @@ export const useChatsStore = defineStore({
                     name:
                         recipient?.nickname ||
                         recipientUser?.username ||
-                        'Deleted User',
+                        "Deleted User",
                     recipients: chat.recipients,
-                    lastMessage: messagesStore.getMessageById(chat.id, chat.lastMessageId),
-                    beginningOfChatReached: chat.beginningOfChatReached
+                    lastMessage: messagesStore.getMessageById(
+                        chat.id,
+                        chat.lastMessageId
+                    ),
+                    beginningOfChatReached: chat.beginningOfChatReached,
                 };
             };
         },
@@ -55,7 +64,7 @@ export const useChatsStore = defineStore({
                     (chat) =>
                         chat.recipients.find(
                             (recipient) => recipient.id === id
-                        ) && chat.chatType === 'Direct'
+                        ) && chat.chatType === "Direct"
                 );
                 if (!chat) return;
 
@@ -82,17 +91,15 @@ export const useChatsStore = defineStore({
                 });
         },
         updateChat({ id, ...chat }) {
-                const chatIndex = this.chats.findIndex((chat) => chat.id === id);
-                if (chatIndex > -1) {
-                    this.chats[chatIndex] = { ...this.chats[chatIndex], ...chat };
-                } else {
-                    this.chats.push({ id, ...chat });
-                }
+            const chatIndex = this.chats.findIndex((chat) => chat.id === id);
+            if (chatIndex > -1) {
+                this.chats[chatIndex] = { ...this.chats[chatIndex], ...chat };
+            } else {
+                this.chats.push({ id, ...chat });
+            }
         },
         addOrReplaceChat(data) {
-            const chatExists = this.chats.find(
-                (chat) => chat.id === data.id
-            );
+            const chatExists = this.chats.find((chat) => chat.id === data.id);
 
             if (chatExists) {
                 this.chats = this.chats.map((chat) => {
@@ -106,9 +113,13 @@ export const useChatsStore = defineStore({
             }
         },
         setLastMessageId(chatId, messageId) {
-            const chatIndex = this.chats.findIndex(chat => chat.id === chatId);
-            this.chats[chatIndex] = { ...this.chats[chatIndex], lastMessageId: messageId };
+            const chatIndex = this.chats.findIndex(
+                (chat) => chat.id === chatId
+            );
+            this.chats[chatIndex] = {
+                ...this.chats[chatIndex],
+                lastMessageId: messageId,
+            };
         },
-
     },
 });

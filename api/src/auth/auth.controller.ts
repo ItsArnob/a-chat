@@ -1,28 +1,19 @@
-import { LoginGuard } from '@/common/guards/login.guard';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { GetUserDto, LoginResponseDto, CreateUserDto } from '@/dto/auth.dto';
-import { UsersService } from '@/users/users.service';
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpCode, HttpStatus,
-    Post,
-    Req,
-    UseGuards
-} from '@nestjs/common';
-import { Request } from 'express';
-import { AuthService } from './auth.service';
+import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { LoginGuard } from "@/common/guards/login.guard";
+import { CreateUserDto, GetUserDto, LoginResponseDto } from "@/dto/auth.dto";
+import { UsersService } from "@/users/users.service";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from "@nestjs/common";
+import { Request } from "express";
+import { AuthService } from "./auth.service";
 
-@Controller('auth')
+@Controller("auth")
 export class AuthController {
     constructor(
         private authService: AuthService,
         private usersService: UsersService
     ) {}
 
-    @Post('login')
+    @Post("login")
     @HttpCode(200)
     @UseGuards(LoginGuard)
     login(@Req() req: Request): Promise<LoginResponseDto> {
@@ -35,7 +26,7 @@ export class AuthController {
         return this.usersService.createUser(body.username, body.password);
     }
 
-    @Get('user')
+    @Get("user")
     @UseGuards(JwtAuthGuard)
     user(@Req() req: Request): GetUserDto {
         return {
@@ -44,11 +35,10 @@ export class AuthController {
         };
     }
 
-    @Delete('logout')
+    @Delete("logout")
     @UseGuards(JwtAuthGuard)
     @HttpCode(200)
     async logout(@Req() req: Request): Promise<void> {
         return this.authService.logout(req.user.id);
-
     }
 }

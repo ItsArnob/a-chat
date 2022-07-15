@@ -1,6 +1,6 @@
-import { ChatDoc, MessageDoc } from '@/models/chat.model';
-import { User, UserDoc } from '@/models/user.model';
-import { Collection, Db, MongoClient } from 'mongodb';
+import { ChatDoc, MessageDoc } from "@/models/chat.model";
+import { UserDoc } from "@/models/user.model";
+import { Collection, Db, MongoClient } from "mongodb";
 
 export interface MongoDB {
     db: Db;

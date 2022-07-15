@@ -5,8 +5,8 @@
     </template>
 </template>
 <script setup>
-import { useUserStore } from '@/stores/user';
-import LoginPage from '@/views/LoginPage.vue';
+import { useUserStore } from "@/stores/user";
+import LoginPage from "@/views/LoginPage.vue";
 
 const userStore = useUserStore();
 </script>

@@ -1,11 +1,11 @@
-import { defineStore } from 'pinia';
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
+import { defineStore } from "pinia";
 
 export const useInternalMiscStore = defineStore({
-    id: 'internalMisc',
+    id: "internalMisc",
     state: () => ({
         wsNetworkError: false,
-        lastUpdatedTime: dayjs().format("MMM DD, YYYY")
+        lastUpdatedTime: dayjs().format("MMM DD, YYYY"),
     }),
     getters: {},
     actions: {
@@ -13,7 +13,6 @@ export const useInternalMiscStore = defineStore({
             this.wsNetworkError = error;
         },
         updateTime(timestamp) {
-
             /**
              * only update when the date changes.
              * e.g. from 12th to 13th or if you were to
@@ -21,9 +20,9 @@ export const useInternalMiscStore = defineStore({
              * this should prevent unnecessary update to components.
              */
 
-            if(!dayjs().isSame(dayjs(this.lastUpdatedTime), 'day')) {
+            if (!dayjs().isSame(dayjs(this.lastUpdatedTime), "day")) {
                 this.lastUpdatedTime = dayjs().format("MMM DD, YYYY");
             }
-        }
+        },
     },
 });

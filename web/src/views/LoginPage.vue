@@ -1,7 +1,9 @@
 <template>
     <div class="h-full w-full flex">
         <div class="m-auto w-[400px] p-2">
-            <p class='text-rose-400' v-if='isLoggedOut'>You've been logged out.</p>
+            <p class="text-rose-400" v-if="isLoggedOut">
+                You've been logged out.
+            </p>
             <TabGroup @change="changeTab">
                 <TabList
                     class="flex space-x-1 rounded-md bg-slate-800 backdrop-blur-sm p-1"
@@ -42,13 +44,20 @@
                             @submit="login"
                             message-class="text-rose-400"
                         >
-                           <LoginOrSignupInputs :is-form-submitting='isFormSubmitting'/>
+                            <LoginOrSignupInputs
+                                :is-form-submitting="isFormSubmitting"
+                            />
                         </FormKit>
                     </TabPanel>
                     <TabPanel>
-                        <div class='text-lg text-green-400' v-if='isAccountCreated'>
-                                <p class='text-center'>Your account has been created! login using your username and password to get started.</p>
-
+                        <div
+                            class="text-lg text-green-400"
+                            v-if="isAccountCreated"
+                        >
+                            <p class="text-center">
+                                Your account has been created! login using your
+                                username and password to get started.
+                            </p>
                         </div>
                         <FormKit
                             v-else
@@ -58,7 +67,10 @@
                             @submit="createAccount"
                             message-class="text-rose-400"
                         >
-                            <LoginOrSignupInputs sign-up='true' :is-form-submitting='isFormSubmitting'/>
+                            <LoginOrSignupInputs
+                                sign-up="true"
+                                :is-form-submitting="isFormSubmitting"
+                            />
                         </FormKit>
                     </TabPanel>
                 </TabPanels>
@@ -67,11 +79,11 @@
     </div>
 </template>
 <script setup>
-import LoginOrSignupInputs from '@/components/LoginOrSignupInputs.vue';
-import { useUserStore } from '@/stores/user';
-import { clearErrors, FormKit, setErrors } from '@formkit/vue';
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/vue';
-import { onMounted, ref } from 'vue';
+import LoginOrSignupInputs from "@/components/LoginOrSignupInputs.vue";
+import { useUserStore } from "@/stores/user";
+import { clearErrors, FormKit, setErrors } from "@formkit/vue";
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/vue";
+import { onMounted, ref } from "vue";
 
 const isFormSubmitting = ref(false);
 const isLoggedOut = ref(false);
@@ -81,12 +93,12 @@ const userStore = useUserStore();
 
 async function login(credentials) {
     isFormSubmitting.value = true;
-    clearErrors('loginForm');
+    clearErrors("loginForm");
 
     userStore
         .login(credentials.username, credentials.password)
         .then((message) => {
-            if (!message.ok) setErrors('loginForm', [`${message}`]);
+            if (!message.ok) setErrors("loginForm", [`${message}`]);
         })
         .finally(() => {
             isFormSubmitting.value = false;
@@ -94,29 +106,29 @@ async function login(credentials) {
 }
 async function createAccount(credentials) {
     isFormSubmitting.value = true;
-    clearErrors('signupForm');
+    clearErrors("signupForm");
     userStore
         .createAccount(credentials.username, credentials.password)
         .then((message) => {
-            if(!message.ok) {
-                if(message.toLowerCase().includes("username")) {
-                    setErrors('signupForm', [], { username: message });
-                }
-                else setErrors('signupForm', [`${message}`])
+            if (!message.ok) {
+                if (message.toLowerCase().includes("username")) {
+                    setErrors("signupForm", [], { username: message });
+                } else setErrors("signupForm", [`${message}`]);
             } else {
                 isAccountCreated.value = true;
             }
-        }).finally(() => {
+        })
+        .finally(() => {
             isFormSubmitting.value = false;
-    })
+        });
 }
 const changeTab = () => {
     isAccountCreated.value = false;
-}
+};
 onMounted(() => {
-    if(localStorage.getItem('loggedOut')) {
+    if (localStorage.getItem("loggedOut")) {
         isLoggedOut.value = true;
-        localStorage.removeItem('loggedOut');
+        localStorage.removeItem("loggedOut");
     }
-})
+});
 </script>
