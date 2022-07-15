@@ -25,11 +25,8 @@
                     class="shrink-0 h-14 px-2 self-start w-full flex items-center justify-between"
                 >
                     <div class="flex">
-                        <img
-                            alt="user avatar"
-                            src="https://static.wikia.nocookie.net/oneshot/images/0/02/Niko.png/"
-                            class="rounded-full w-10 md:w-11"
-                        />
+                        <Avatar size="sm" />
+
                         <logout-button class="ml-2" />
                     </div>
                     <h2 class="text-2xl font-semibold">Chats</h2>
@@ -68,6 +65,7 @@
     </div>
 </template>
 <script setup>
+import Avatar from "@/components/Avatar.vue";
 import Chat from "@/components/chat/Chat.vue";
 import LogoutButton from "@/components/LogoutButton.vue";
 

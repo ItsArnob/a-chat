@@ -1,6 +1,7 @@
 import { useChatsStore } from "@/stores/chats";
 import { useUserStore } from "@/stores/user";
 import { api } from "@/utils/axios";
+import { compareString } from "@/utils/utils";
 import dayjs from "dayjs";
 import { defineStore } from "pinia";
 import { monotonicFactory } from "ulid";
@@ -24,7 +25,7 @@ export const useMessagesStore = defineStore({
                 return [];
             const sortedMessages = state.messagesByChat[
                 chatsStore.currentlyOpenChatId
-            ].messages.sort((a, b) => (a.id > b.id) - (a.id < b.id));
+                ].messages.sort((a, b) => compareString(a.id, b.id));
 
             let lastMessageAuthor;
             return sortedMessages.map((message, index) => {
@@ -145,7 +146,7 @@ export const useMessagesStore = defineStore({
                 ].messages.filter((message) => message.error);
                 messages.push(...failedMessages);
             }
-            messages.sort((a, b) => (a.id > b.id) - (a.id < b.id));
+            messages.sort((a, b) => compareString(a.id, b.id));
             this.messagesByChat[chatId] = { messages }; // note: this also removes the stale field.
             if (messages[messages.length - 1])
                 chatsStore.setLastMessageId(

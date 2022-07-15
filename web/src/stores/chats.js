@@ -1,6 +1,7 @@
 import { useMessagesStore } from "@/stores/messages";
 import { useUserStore } from "@/stores/user";
 import { api } from "@/utils/axios";
+import { compareString } from "@/utils/utils";
 import { defineStore } from "pinia";
 
 export const useChatsStore = defineStore({
@@ -17,8 +18,7 @@ export const useChatsStore = defineStore({
                 })
                 .sort(
                     (a, b) =>
-                        (b.lastMessage?.id > a.lastMessage?.id) -
-                        (b.lastMessage?.id < a.lastMessage?.id)
+                        compareString(b.lastMessage?.id, a.lastMessage?.id)
                 );
         },
         getChatById(state) {

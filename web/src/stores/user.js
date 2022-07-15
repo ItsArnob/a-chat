@@ -1,6 +1,7 @@
 import { api } from "@/utils/axios";
 import formatAxiosError from "@/utils/formatAxiosError";
 import { initSocket } from "@/utils/socket";
+import { compareString } from "@/utils/utils";
 import axios from "axios";
 import { defineStore } from "pinia";
 
@@ -24,15 +25,15 @@ export const useUserStore = defineStore({
         getFriends: (state) =>
             state.users
                 ?.filter((user) => user.relationship === "Friend")
-                .sort(new Intl.Collator().compare),
+                .sort((a, b) => compareString(a.username, b.username)),
         getIncomingRequests: (state) =>
             state.users
                 .filter((user) => user.relationship === "Incoming")
-                .sort(new Intl.Collator().compare),
+                .sort((a, b) => compareString(a.username, b.username)),
         getOutgoingRequests: (state) =>
             state.users
                 .filter((user) => user.relationship === "Outgoing")
-                .sort(new Intl.Collator().compare),
+                .sort((a, b) => compareString(a.username, b.username))
     },
     actions: {
         async login(username, password) {
