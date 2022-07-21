@@ -79,8 +79,7 @@ export const initSocket = () => {
     // Error handling.
 
     socket.on("exception", (data) => {
-
-        if (data.message === "Invalid authentication token.") {
+        if (data.message === "Invalid authentication token." || data.message === "Unauthorized" || data.message === "Invalid session.") {
             if (!userStore.auth.initialized) {
                 userStore.setInitialized(true);
             }
@@ -98,7 +97,10 @@ export const initSocket = () => {
         internalMiscStore.setWsNetworkError(true);
     });
     socket.on("disconnect", (data) => {
-        messagesStore.setAllMessagesStale();
+        if(data === "io server disconnect") {
+            if(userStore.getUser) logout(true, true);
+        }
+        else messagesStore.setAllMessagesStale();
     });
     socket.connect();
 };

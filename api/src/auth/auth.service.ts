@@ -1,10 +1,8 @@
 import { LoginResponseDto } from "@/dto/auth.dto";
 import { UserNoProfile } from "@/models/user.model";
 import { UsersService } from "@/users/users.service";
-import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import { Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import bcrypt from "bcrypt";
-import { nanoid } from "nanoid/async";
 
 @Injectable()
 export class AuthService {
@@ -12,7 +10,6 @@ export class AuthService {
 
     constructor(
         private userService: UsersService,
-        private jwtService: JwtService
     ) {}
 
     async validateUser(
@@ -20,34 +17,23 @@ export class AuthService {
         password: string
     ): Promise<UserNoProfile> {
         const user = await this.userService.findOneNoProfileByName(username);
-        const isValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isValid)
-            throw new UnauthorizedException({
-                msg: `Invalid username or password.`,
-                id: user.id,
+        if(!user) {
+            this.logger.warn({
+                event: `authn_login_fail:${username}`,
+                msg: `Non-existent user account login attempted.`,
             });
-        return user;
-    }
-
-    async login(user: UserNoProfile): Promise<LoginResponseDto> {
-        const payload = { sub: user.id, jti: await nanoid(32) };
-        const jwt = await this.jwtService.signAsync(payload);
-        await this.userService.setToken(user.id, payload.jti);
-
-        this.logger.log({
-            event: `authn_login_success:${user.id}`,
-            msg: "User login succeeded.",
-        });
-        return {
-            token: jwt,
+            throw new UnauthorizedException("User not found.");
         };
-    }
 
-    async logout(id: string): Promise<void> {
-        await this.userService.setToken(id, null);
-        this.logger.log({
-            event: `authn_logout_success:${id}`,
-            msg: "User logout succeeded.",
-        });
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isValid) {
+            this.logger.warn({
+                event: `authn_login_fail:${user.id}`,
+                msg: "User attempted to log in using an incorrect password.",
+            });
+            throw new UnauthorizedException("Incorrect password.");
+        };
+        
+        return user;
     }
 }

@@ -1,4 +1,5 @@
-export const DATABASE_PROVIDER = "DATABASE";
+export const MONGODB_PROVIDER = "MONGO";
+export const REDIS_PROVIDER = "REDIS";
 export const USERS_COLLECTION = "users";
 export const CHATS_COLLECTION = "chats";
 export const MESSAGES_COLLECTION = "messages";

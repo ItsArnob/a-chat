@@ -4,28 +4,68 @@ import { Chat, Message } from "@/models/chat.model";
 import { RelationStatus, User } from "@/models/user.model";
 import { UsersService } from "@/users/users.service";
 import { WebsocketGateway } from "@/websocket/websocket.gateway";
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Inject, Injectable, Logger, OnModuleInit, UnauthorizedException } from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
 import { Socket } from "socket.io";
 
+import signature from "cookie-signature";
+import { ConfigService } from "@nestjs/config";
+import { Request } from "express";
+import { promisify } from "util";
+import { SessionData } from "express-session";
+import { REDIS_PROVIDER } from "@/constants";
+import Redis from "ioredis";
 @Injectable()
 export class WebsocketService implements OnModuleInit {
     private chatService: ChatService;
     private usersService: UsersService;
     private websocketGateway: WebsocketGateway;
+    private logger = new Logger(WebsocketService.name);
 
-    constructor(private moduleRef: ModuleRef) {}
+    constructor(
+        private moduleRef: ModuleRef,
+        private configService: ConfigService,
+        @Inject(REDIS_PROVIDER) 
+        private redis: Redis
+    ) {}
 
-    async getUserFromSocket(socket: Socket): Promise<User> {
-        const token = socket.handshake.auth.token;
-        return this.usersService.findOneByToken(token);
+    async getUserFromSocket(socket: Socket): Promise<{ user: User, token: string }> {
+
+        if(typeof socket.handshake.auth?.token !== 'string') {
+            this.logger.debug("sid of the auth object is not a string or it doesn't exist.");   
+            throw new UnauthorizedException("Invalid session.");
+        }
+        
+        const token = signature.unsign(socket.handshake.auth.token.substring(2), this.configService.get("sessionSecret") as string);
+        
+        if (!token) {
+            this.logger.debug("sid of the auth object has invalid signature");
+            throw new UnauthorizedException("Invalid session.");
+        }
+        const session = await this.redis.get(`sess:${token}`);
+        if(!session) {
+            this.logger.debug("Session not found in redis.");
+            throw new UnauthorizedException("Invalid session.");
+        }
+        const sessionDeserialized = JSON.parse(session) as SessionData;
+        if (!sessionDeserialized.passport?.user?.id) {
+            this.logger.warn("valid session found in redis, but it does not contain a user id.");
+            throw new UnauthorizedException("Invalid session.");
+        }    
+        
+        const user = await this.usersService.findOneById(sessionDeserialized.passport.user.id);
+        if(!user) {
+            this.logger.debug(`No user found with the corresponding user id ${sessionDeserialized.passport.user.id}`);
+            throw new UnauthorizedException("Invalid session.");
+        }
+        return { user, token };
     }
 
     async authenticateUserFromSocket(
         socket: Socket,
         sockets: OnlineSocketsList
     ) {
-        const user = await this.getUserFromSocket(socket);
+        const { user, token } = await this.getUserFromSocket(socket);
         const chats = await this.chatService.getChatsOfUser(user.id);
 
         const relatedUserIds =
@@ -63,6 +103,7 @@ export class WebsocketService implements OnModuleInit {
             users: relatedUsers,
             chats,
             lastMessages,
+            token
         };
     }
     async getFriendIdsFromSocket(client: Socket) {
@@ -70,39 +111,40 @@ export class WebsocketService implements OnModuleInit {
     }
 
     emitFriendAdded(userId: string, receiverUserId: string, chat: Chat) {
-        this.emitUpdateUser(userId, {
+        this.emitUpdateUser(`user:${userId}`, {
             id: receiverUserId,
             online: this.userOnline(receiverUserId),
             relationship: RelationStatus.Friend,
         });
-        this.emitUpdateUser(receiverUserId, {
+        this.emitUpdateUser(`user:${receiverUserId}`, {
             id: userId,
             online: this.userOnline(userId),
             relationship: RelationStatus.Friend,
         });
-        this.emitUpdateChat([userId, receiverUserId], chat);
+        this.emitNewDirectChatJoin([userId, receiverUserId], chat);
+
     }
 
     emitNewFriendRequest(
         user: { id: string; username: string },
         receiverUser: { id: string; username: string }
     ) {
-        this.emitUpdateUser(user.id, {
+        this.emitUpdateUser(`user:${user.id}`, {
             id: receiverUser.id,
             username: receiverUser.username,
             relationship: RelationStatus.Outgoing,
         });
 
-        this.emitUpdateUser(receiverUser.id, {
+        this.emitUpdateUser(`user:${receiverUser.id}`, {
             id: user.id,
             username: user.username,
             relationship: RelationStatus.Incoming,
         });
     }
 
-    emitFriendRemoved(userId: string, receiverUserId: string, message: string) {
+    emitFriendRemoved(userId: string, receiverUserId: string, message: string, chatId?: string) {
         this.emitUpdateUser(
-            userId,
+            `user:${userId}`,
             {
                 id: receiverUserId,
                 relationship: RelationStatus.None,
@@ -112,7 +154,7 @@ export class WebsocketService implements OnModuleInit {
         );
 
         this.emitUpdateUser(
-            receiverUserId,
+            `user:${receiverUserId}`,
             {
                 id: userId,
                 relationship: RelationStatus.None,
@@ -120,6 +162,15 @@ export class WebsocketService implements OnModuleInit {
             },
             message
         );
+
+        if(message === "Friend removed." && chatId) this.leaveDirectChatRoom([userId, receiverUserId], chatId);
+    }
+
+    emitUserOnline(userId: string, recipients: string[], online: Date | boolean) {
+        this.emitUpdateUser(recipients.map((id) => `user:${id}`), {
+            id: userId,
+            online,
+        });
     }
 
     emitUpdateUser(
@@ -132,12 +183,21 @@ export class WebsocketService implements OnModuleInit {
             message: message,
         });
     }
-    emitUpdateChat(emitTo: string[], chat: Chat) {
+
+
+    emitNewDirectChatJoin(userIds: string[], chat: Chat) {
+        this.joinDirectChatRoom(userIds, chat.id);
+        this.emitUpdateChat(chat.id, chat);
+    }
+
+    emitUpdateChat(emitTo: string, chat: Chat) {
         this.websocketGateway.server.to(emitTo).emit("Chat:Update", { chat });
     }
-    emitNewMessage(recipients: string[], message: Message, ackId?: string) {
+
+
+    emitNewMessage(chatId: string, message: Message, ackId?: string) {
         this.websocketGateway.server
-            .to(recipients)
+            .to(`chat-direct:${chatId}`)
             .emit("Message:New", { ...message, ackId: ackId });
     }
 
@@ -148,8 +208,18 @@ export class WebsocketService implements OnModuleInit {
         });
     }
 
+    joinDirectChatRoom(userIds: string[], chatId: string) {
+        this.websocketGateway.server.in(userIds.map(id => `user:${id}`)).socketsJoin(`chat-direct:${chatId}`);
+    }
+    leaveDirectChatRoom(userIds: string[], chatId: string) {
+        this.websocketGateway.server.in(userIds.map(id => `user:${id}`)).socketsLeave(`chat-direct:${chatId}`);
+    }
     userOnline(userId: string): Date | boolean {
         return this.websocketGateway.sockets.get(userId)?.online || false;
+    }
+
+    logoutSession(sid: string) {
+        this.websocketGateway.server.to(`user-sess:${sid}`).disconnectSockets();
     }
 
     onModuleInit(): any {
