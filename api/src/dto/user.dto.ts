@@ -31,6 +31,7 @@ export interface RemoveFriendDto {
     user: {
         id: string;
     };
+    chatId?: string | undefined;
     message: string;
 }
 export interface AddFriendResponseDto extends Omit<AddFriendDto, "chat"> {}

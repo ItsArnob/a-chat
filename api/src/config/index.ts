@@ -1,5 +1,5 @@
 export function validate(config: Record<string, any>) {
-    const requiredProperties = ["JWT_SECRET"];
+    const requiredProperties = ["SESSION_SECRET"];
     const errors: string[] = [];
     requiredProperties.forEach((property: string) => {
         if (!config[property] || !config[property].trim()) {
@@ -26,18 +26,18 @@ export function validate(config: Record<string, any>) {
 }
 export const config = () => {
     return {
-        jwt: {
-            secret: process.env.JWT_SECRET,
-            expiresIn: Number(process.env.JWT_EXPIRATION_TIME),
-        },
+        sessionSecret: process.env.SESSION_SECRET,
+        sessionMaxAge: Number(process.env.SESSION_MAX_AGE) || 1000 * 60 * 60 * 24 * 14, // 2 weeks
         db: {
             name: process.env.DB_NAME || "a_chat",
             uri: process.env.DB_URI || "mongodb://localhost:27017",
         },
+        redis: {
+            uri: process.env.REDIS_URI || "redis://localhost:6379",
+        },
         logLevel: process.env.LOG_LEVEL || "info",
+        disableRequestLogging: !!process.env.DISABLE_REQUEST_LOGGING || false,
         port: process.env.PORT ? parseInt(process.env.PORT) : 5000,
-        discordWebhookURL: process.env.DISCORD_WEBHOOK_URL,
-        secureCookie: !!process.env.SECURE_COOKIE,
         trustProxy: !!process.env.TRUST_PROXY,
         corsOrigins: process.env.CORS_ALLOWED_DOMAINS?.split(" ") || [],
         bcryptRounds: process.env.BCRYPT_ROUNDS

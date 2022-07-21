@@ -7,13 +7,14 @@ import { validate } from "class-validator";
 @Injectable()
 export class LoginGuard extends AuthGuard("local") {
     private logger = new Logger(LoginGuard.name);
-
-    async canActivate(context: ExecutionContext) {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         const credentials = plainToInstance(LoginDto, request.body);
+        
         const validationErrors = await validate(credentials, {
             validationError: { target: false, value: false },
         });
+        
         if (validationErrors.length > 0) {
             const errors: any = {};
             validationErrors.forEach((err) => {
@@ -31,6 +32,8 @@ export class LoginGuard extends AuthGuard("local") {
             });
         }
         const result = (await super.canActivate(context)) as boolean;
+        await super.logIn(context.switchToHttp().getRequest());
+        if(credentials.friendlyName) request.session.friendlyName = credentials.friendlyName;
         return result;
     }
 }

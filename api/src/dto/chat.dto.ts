@@ -41,7 +41,6 @@ export interface SaveDirectMessageDto {
     chatId: string;
     authorId: string;
     content: string;
-    recipients: string[];
 }
 export interface SaveDirectMessageResponseDto
     extends Omit<SaveDirectMessageDto, "recipients"> {

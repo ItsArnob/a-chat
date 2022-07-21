@@ -1,12 +1,14 @@
-import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { LoggedInGuard } from "@/common/guards/logged-in.guard";
 import { UlidValidatorPipe } from "@/common/pipes/ulid-validator.pipe";
 import { AddFriendParamsDto, AddFriendQueryDto, AddFriendResponseDto, RemoveFriendDto } from "@/dto/user.dto";
 import { Chat } from "@/models/chat.model";
 import { WebsocketService } from "@/websocket/websocket.service";
-import { Controller, Delete, Param, Put, Query, Req, UseGuards } from "@nestjs/common";
+import { Controller, Delete, Param, Put, Query, Req, UseGuards, Get } from "@nestjs/common";
 import { Request } from "express";
 import { UsersService } from "./users.service";
 
+
+@UseGuards(LoggedInGuard)
 @Controller("users")
 export class UsersController {
     constructor(
@@ -15,7 +17,6 @@ export class UsersController {
     ) {}
 
     @Put("/:usernameOrId/friend")
-    @UseGuards(JwtAuthGuard)
     async addFriend(
         @Param() params: AddFriendParamsDto,
         @Query() query: AddFriendQueryDto,
@@ -42,7 +43,6 @@ export class UsersController {
     }
 
     @Delete("/:id/friend")
-    @UseGuards(JwtAuthGuard)
     async removeFriend(
         @Param("id", new UlidValidatorPipe()) userId: string,
         @Req() req: Request
@@ -51,7 +51,8 @@ export class UsersController {
         this.websocketService.emitFriendRemoved(
             req.user.id,
             userId,
-            result.message
+            result.message,
+            result.chatId
         );
         return result;
     }

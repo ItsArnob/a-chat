@@ -1,4 +1,4 @@
-import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { LoggedInGuard } from "@/common/guards/logged-in.guard";
 import { UlidValidatorPipe } from "@/common/pipes/ulid-validator.pipe";
 import { GetMessagesQueryDto, messageDto, SaveDirectMessageResponseDto } from "@/dto/chat.dto";
 import { Message } from "@/models/chat.model";
@@ -8,7 +8,7 @@ import { Request } from "express";
 
 import { ChatService } from "./chat.service";
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(LoggedInGuard)
 @Controller("chat")
 export class ChatController {
     constructor(
@@ -42,13 +42,13 @@ export class ChatController {
         @Param("chatId", new UlidValidatorPipe()) chatId: string,
         @Body() body: messageDto
     ): Promise<SaveDirectMessageResponseDto> {
-        const { recipients, ...data } =
+        const data =
             await this.chatService.saveDirectMessage(
                 req.user.id,
                 chatId,
                 body.content
             );
-        this.websocketService.emitNewMessage(recipients, data, body.ackId);
+        this.websocketService.emitNewMessage(chatId, data, body.ackId);
         return { ...data, ackId: body.ackId };
     }
 
