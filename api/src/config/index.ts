@@ -26,7 +26,6 @@ export function validate(config: Record<string, any>) {
 }
 export const config = () => {
     return {
-        sessionSecret: process.env.SESSION_SECRET,
         sessionMaxAge: Number(process.env.SESSION_MAX_AGE) || 1000 * 60 * 60 * 24 * 14, // 2 weeks
         db: {
             name: process.env.DB_NAME || "a_chat",

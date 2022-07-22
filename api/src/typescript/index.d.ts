@@ -5,24 +5,16 @@ import { Session, Store } from "express-session";
 
 declare module "express" {
     interface Request {
-        user: UserNoProfile;
+        user: UserNoProfile & { 
+            sessionName?: string | undefined
+            sessionId: string;
+        };
+        
     }
 }
 
 declare module "socket.io" {
     interface Socket {
         user: { id: string };
-    }
-}
-
-
-declare module 'express-session' {
-    export interface SessionData {
-        friendlyName?: string | undefined;
-        passport: {
-            user: {
-                id: string;
-            }
-        }
     }
 }

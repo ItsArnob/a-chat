@@ -23,7 +23,7 @@ export class WebsocketGateway
         try {
             const connectedAt = Date.now();
 
-            const { token, ...data } = await this.websocketService.authenticateUserFromSocket(
+            const { sessionId, ...data } = await this.websocketService.authenticateUserFromSocket(
                 client,
                 this.sockets
             );
@@ -37,7 +37,7 @@ export class WebsocketGateway
                 return !!chat.recipients.find(recipient => friendIds.includes(recipient.id))
             }) : [];
 
-            client.join([`user:${data.id}`, `user-sess:${token}`, ...friendsChats.map(chat => `chat-direct:${chat.id}`)]);
+            client.join([`user:${data.id}`, `user-sessid:${sessionId}`, ...friendsChats.map(chat => `chat-direct:${chat.id}`)]);
             client.user = { id: data.id };
             client.emit("Ready", data);
 
@@ -68,18 +68,19 @@ export class WebsocketGateway
                 duration: Date.now() - connectedAt,
             });
         } catch (e: any) {
-            if (e instanceof HttpException) {
-                if (e instanceof UnauthorizedException) {
-                    this.logger.warn({
-                        event: `ws_connect_fail,invalid_session`,
-                        msg: `Invalid session id was used.`,
-                    });
-                };
+            
+            if (e instanceof UnauthorizedException) {
+
                 this.websocketService.emitException(
                     client,
                     "onGatewayConnection",
-                    e.message
+                    "Invalid session."
                 );
+                this.logger.warn({
+                    event: `ws_connect_fail,invalid_session`,
+                    msg: e.message,
+                });
+            
             } else {
                 this.websocketService.emitException(
                     client,

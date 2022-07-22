@@ -1,6 +1,4 @@
-import cookieSignature from "cookie-signature";
-
-import { LoggedInGuard } from "@/common/guards/logged-in.guard";
+import { AuthenticatedGuard } from "@/common/guards/authenticated.guard";
 import { LoginGuard } from "@/common/guards/login.guard";
 import { CreateUserDto, GetUserDto, LoginDto, LoginResponseDto } from "@/dto/auth.dto";
 import { UsersService } from "@/users/users.service";
@@ -8,23 +6,27 @@ import { WebsocketService } from "@/websocket/websocket.service";
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, InternalServerErrorException, Post, Req, UseGuards } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
+import { promisify } from "util";
+import { AuthGuard } from "@nestjs/passport";
+import { AuthService } from "./auth.service";
 
 
 @Controller("auth")
 export class AuthController {
     constructor(
         private usersService: UsersService,
-        private websocketService: WebsocketService,
-        private config: ConfigService
+        private authService: AuthService,
+        private websocketService: WebsocketService
     ) {}
 
     @Post("login")
     @HttpCode(200)
     @UseGuards(LoginGuard)
-    login(@Req() req: Request, @Body() body: LoginDto) {
+    async login(@Req() req: Request, @Body() body: LoginDto) {
         
-        const token = cookieSignature.sign(req.sessionID, this.config.get("sessionSecret") as string);
-        return { id: req.user.id, username: req.user.username, token: `s:${token}` };
+        const session = await this.authService.createSession(req.user.id, req.user.sessionName);
+
+        return { id: req.user.id, username: req.user.username, session };
     }
 
     @Post("signup")
@@ -33,24 +35,20 @@ export class AuthController {
     }
 
     @Get("user")
-    @UseGuards(LoggedInGuard)
+    @UseGuards(AuthenticatedGuard)
     user(@Req() req: Request) {
         return {
             id: req.user.id,
             username: req.user.username,
-            friendlyName: req.session.friendlyName,
+            sessionName: req.user.sessionName
         };
     }
 
     @Delete("logout")
-    @UseGuards(LoggedInGuard)
-    @HttpCode(200)
+    @UseGuards(AuthenticatedGuard)
+    @HttpCode(HttpStatus.NO_CONTENT)
     async logout(@Req() req: Request): Promise<void> {
-        const sessionID = req.sessionID;
-        req.logout((err: Error) => {
-            this.websocketService.logoutSession(sessionID);
-            if(!err) return { msg: "logged out." }
-            throw new InternalServerErrorException(err);
-        });
+        await this.authService.deleteSession(req.user.sessionId);
+        this.websocketService.logoutSession(req.user.sessionId);
     }
 }

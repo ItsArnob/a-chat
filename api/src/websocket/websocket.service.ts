@@ -7,65 +7,53 @@ import { WebsocketGateway } from "@/websocket/websocket.gateway";
 import { Inject, Injectable, Logger, OnModuleInit, UnauthorizedException } from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
 import { Socket } from "socket.io";
+import { AuthService } from "@/auth/auth.service";
 
-import signature from "cookie-signature";
-import { ConfigService } from "@nestjs/config";
-import { Request } from "express";
-import { promisify } from "util";
-import { SessionData } from "express-session";
-import { REDIS_PROVIDER } from "@/constants";
-import Redis from "ioredis";
 @Injectable()
 export class WebsocketService implements OnModuleInit {
     private chatService: ChatService;
+    private authService: AuthService;
     private usersService: UsersService;
     private websocketGateway: WebsocketGateway;
     private logger = new Logger(WebsocketService.name);
 
     constructor(
         private moduleRef: ModuleRef,
-        private configService: ConfigService,
-        @Inject(REDIS_PROVIDER) 
-        private redis: Redis
     ) {}
 
-    async getUserFromSocket(socket: Socket): Promise<{ user: User, token: string }> {
+    async getUserFromSocket(socket: Socket): Promise<{ user: User, sessionId: string }> {
+        let token;
+        if (typeof socket.handshake.auth?.token === 'string') {
+            this.logger.debug("token found in auth object");
+            token = socket.handshake.auth.token;
+        } else {
+            const authHeader = socket.handshake.headers.authorization;
+            var parts = authHeader?.split(' ');
+            if (parts?.length == 2) {
+                let scheme = parts[0]
+                let credentials = parts[1];
 
-        if(typeof socket.handshake.auth?.token !== 'string') {
-            this.logger.debug("sid of the auth object is not a string or it doesn't exist.");   
-            throw new UnauthorizedException("Invalid session.");
+                if (/^Bearer$/i.test(scheme)) {
+                    token = credentials;
+                    this.logger.debug("token found in authorization header.")
+                } else {
+                    throw new UnauthorizedException("token not provided to authenticate with.");
+                }
+            } else {
+                this.logger.debug("token not found in auth object/authorization header.");
+                throw new UnauthorizedException("token not provided to authenticate with.");
+            }
         }
-        
-        const token = signature.unsign(socket.handshake.auth.token.substring(2), this.configService.get("sessionSecret") as string);
-        
-        if (!token) {
-            this.logger.debug("sid of the auth object has invalid signature");
-            throw new UnauthorizedException("Invalid session.");
-        }
-        const session = await this.redis.get(`sess:${token}`);
-        if(!session) {
-            this.logger.debug("Session not found in redis.");
-            throw new UnauthorizedException("Invalid session.");
-        }
-        const sessionDeserialized = JSON.parse(session) as SessionData;
-        if (!sessionDeserialized.passport?.user?.id) {
-            this.logger.warn("valid session found in redis, but it does not contain a user id.");
-            throw new UnauthorizedException("Invalid session.");
-        }    
-        
-        const user = await this.usersService.findOneById(sessionDeserialized.passport.user.id);
-        if(!user) {
-            this.logger.debug(`No user found with the corresponding user id ${sessionDeserialized.passport.user.id}`);
-            throw new UnauthorizedException("Invalid session.");
-        }
-        return { user, token };
+        const { sessionId, sessionName, ...user } = await this.authService.validateToken(token, true);
+
+        return { user, sessionId };
     }
 
     async authenticateUserFromSocket(
         socket: Socket,
         sockets: OnlineSocketsList
     ) {
-        const { user, token } = await this.getUserFromSocket(socket);
+        const { user, sessionId } = await this.getUserFromSocket(socket);
         const chats = await this.chatService.getChatsOfUser(user.id);
 
         const relatedUserIds =
@@ -103,7 +91,7 @@ export class WebsocketService implements OnModuleInit {
             users: relatedUsers,
             chats,
             lastMessages,
-            token
+            sessionId
         };
     }
     async getFriendIdsFromSocket(client: Socket) {
@@ -225,6 +213,7 @@ export class WebsocketService implements OnModuleInit {
     onModuleInit(): any {
         this.usersService = this.moduleRef.get(UsersService, { strict: false });
         this.chatService = this.moduleRef.get(ChatService, { strict: false });
+        this.authService = this.moduleRef.get(AuthService, { strict: false })
         this.websocketGateway = this.moduleRef.get(WebsocketGateway);
     }
 }

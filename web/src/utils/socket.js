@@ -4,14 +4,15 @@ import { useInternalMiscStore } from "@/stores/internalMisc";
 import { useMessagesStore } from "@/stores/messages";
 import { useUserStore } from "@/stores/user";
 import io from "socket.io-client";
+import localforage from 'localforage';
 
 import { logger } from "./logger";
 
 export const socket = io(import.meta.env.VITE_API_URL, {
-    auth: { token: localStorage.token },
     autoConnect: false,
+    auth: { token: '' }
 });
-export const initSocket = () => {
+export const initSocket = async() => {
     const userStore = useUserStore();
     const chatsStore = useChatsStore();
     const internalMiscStore = useInternalMiscStore();
@@ -20,8 +21,8 @@ export const initSocket = () => {
 
     let buffer = [];
     let shouldBuffer = true;
-
-    socket.auth.token = localStorage.token;
+    const session = await localforage.getItem("session");
+    socket.auth.token = session.token;
     socket.removeAllListeners();
 
     socket.onAny((name, ...args) => {
@@ -83,7 +84,7 @@ export const initSocket = () => {
             if (!userStore.auth.initialized) {
                 userStore.setInitialized(true);
             }
-            logout();
+            // logout();
         } else {
             logger.ws.error(data.message);
         }

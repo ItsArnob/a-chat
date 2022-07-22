@@ -32,8 +32,7 @@ export class LoginGuard extends AuthGuard("local") {
             });
         }
         const result = (await super.canActivate(context)) as boolean;
-        await super.logIn(context.switchToHttp().getRequest());
-        if(credentials.friendlyName) request.session.friendlyName = credentials.friendlyName;
+        if(credentials.friendlyName) request.sessionName = credentials.friendlyName;
         return result;
     }
 }
