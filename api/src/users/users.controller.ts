@@ -1,4 +1,4 @@
-import { LoggedInGuard } from "@/common/guards/logged-in.guard";
+import { AuthenticatedGuard } from "@/common/guards/authenticated.guard";
 import { UlidValidatorPipe } from "@/common/pipes/ulid-validator.pipe";
 import { AddFriendParamsDto, AddFriendQueryDto, AddFriendResponseDto, RemoveFriendDto } from "@/dto/user.dto";
 import { Chat } from "@/models/chat.model";
@@ -8,7 +8,7 @@ import { Request } from "express";
 import { UsersService } from "./users.service";
 
 
-@UseGuards(LoggedInGuard)
+@UseGuards(AuthenticatedGuard)
 @Controller("users")
 export class UsersController {
     constructor(

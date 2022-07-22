@@ -1,4 +1,4 @@
-import { LoggedInGuard } from "@/common/guards/logged-in.guard";
+import { AuthenticatedGuard } from "@/common/guards/authenticated.guard";
 import { UlidValidatorPipe } from "@/common/pipes/ulid-validator.pipe";
 import { GetMessagesQueryDto, messageDto, SaveDirectMessageResponseDto } from "@/dto/chat.dto";
 import { Message } from "@/models/chat.model";
@@ -8,7 +8,7 @@ import { Request } from "express";
 
 import { ChatService } from "./chat.service";
 
-@UseGuards(LoggedInGuard)
+@UseGuards(AuthenticatedGuard)
 @Controller("chat")
 export class ChatController {
     constructor(

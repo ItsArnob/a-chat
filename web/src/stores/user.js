@@ -4,6 +4,7 @@ import { initSocket } from "@/utils/socket";
 import { compareString } from "@/utils/utils";
 import axios from "axios";
 import { defineStore } from "pinia";
+import localforage from 'localforage';
 
 export const useUserStore = defineStore({
     id: "user",
@@ -42,8 +43,8 @@ export const useUserStore = defineStore({
                     username,
                     password,
                 })
-                .then((res) => {
-                    localStorage.setItem("token", res.data.token);
+                .then(async(res) => {
+                    await localforage.setItem("session", res.data.session);
                     initSocket();
 
                     /**

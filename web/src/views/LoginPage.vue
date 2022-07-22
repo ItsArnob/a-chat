@@ -134,9 +134,9 @@ const changeTab = (index) => {
 };
 
 onMounted(() => {
-    if (localStorage.getItem("loggedOut")) {
+    if (sessionStorage.getItem("loggedOut")) {
         isLoggedOut.value = true;
-        localStorage.removeItem("loggedOut");
+        sessionStorage.removeItem("loggedOut");
     }
 });
 </script>
