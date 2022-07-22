@@ -6,6 +6,7 @@ import { useUserStore } from "@/stores/user";
 import { clearSocket } from "@/utils/socket";
 import axios from "axios";
 import { nextTick } from "vue";
+import localforage from 'localforage';
 
 export const useLogout = () => {
     const userStore = useUserStore();
@@ -20,8 +21,8 @@ export const useLogout = () => {
         messagesStore.$reset();
     };
     const logout = async (deleteSession, showLogoutMessage) => {
-        const token = localStorage.getItem("token");
-        localStorage.removeItem("token");
+        const session = await localforage.getItem("session");
+        await localforage.removeItem("session");
 
         await router.push("/");
 
@@ -32,15 +33,15 @@ export const useLogout = () => {
             axios
                 .delete(`${ import.meta.env.VITE_API_URL }/auth/logout`, {
                     headers: {
-                        Authorization: `Bearer ${ token }`
+                        Authorization: `Bearer ${ session?.token }`
                     }
                 })
                 .finally(() => {
-                    if (showLogoutMessage) localStorage.setItem("loggedOut", true);
+                    if (showLogoutMessage) sessionStorage.setItem("loggedOut", true);
                     userStore.setUser(null);
                 });
         } else {
-            if (showLogoutMessage) localStorage.setItem("loggedOut", true);
+            if (showLogoutMessage) sessionStorage.setItem("loggedOut", true);
             nextTick(() => userStore.setUser(null));
         }
     };

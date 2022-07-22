@@ -1,0 +1,20 @@
+diff --git a/lib/strategy.js b/lib/strategy.js
+index c8dfe7c5360e7fe2ad6cbb7b6669b6643c95e22e..ed808ab7e5f49feecd25332e5a52e1ed155db0dc 100644
+--- a/lib/strategy.js
++++ b/lib/strategy.js
+@@ -100,15 +100,6 @@ Strategy.prototype.authenticate = function(req) {
+     }
+   }
+ 
+-  if (req.body && req.body.access_token) {
+-    if (token) { return this.fail(400); }
+-    token = req.body.access_token;
+-  }
+-
+-  if (req.query && req.query.access_token) {
+-    if (token) { return this.fail(400); }
+-    token = req.query.access_token;
+-  }
+   
+   if (!token) { return this.fail(this._challenge()); }
+   

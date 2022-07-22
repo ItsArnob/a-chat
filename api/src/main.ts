@@ -4,24 +4,28 @@ import { BadRequestException, HttpStatus, ValidationPipe } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
-
 import { Logger } from "nestjs-pino";
-import passport from "passport";
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, {
         bufferLogs: true,
     });
+
     const config = app.get<ConfigService>(ConfigService);
     const logger = app.get(Logger);
+
     const customIoAdapter = new CustomIoAdapter(app);
+
     app.enableCors({
         origin: config.get("corsOrigins") as string[],
         credentials: true,
+        exposedHeaders: ["x-session-id"],
     });
+
     if (config.get("trustProxy")) {
         app.set("trust proxy", 1);
     }
+    
     app.useGlobalPipes(
         new ValidationPipe({
             transform: true,
@@ -46,8 +50,8 @@ async function bootstrap() {
             },
         })
     );
+    
     app.useLogger(logger);
-    app.use(passport.initialize());
     app.useWebSocketAdapter(customIoAdapter);
     await app.listen(config.get("port") as number);
 }

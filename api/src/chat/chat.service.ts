@@ -1,4 +1,4 @@
-import { DATABASE_PROVIDER } from "@/constants";
+import { MONGODB_PROVIDER } from "@/constants";
 import { MongoDB } from "@/database/database.interface";
 import { SaveDirectMessageDto } from "@/dto/chat.dto";
 import { Chat, chatProjection, ChatType, Message, MessageDoc, messageProjection } from "@/models/chat.model";
@@ -17,7 +17,7 @@ export class ChatService {
     constructor(
         private usersService: UsersService,
         private configService: ConfigService,
-        @Inject(DATABASE_PROVIDER)
+        @Inject(MONGODB_PROVIDER)
         private mongo: MongoDB
     ) {}
 
@@ -170,7 +170,6 @@ export class ChatService {
         return {
             ...rest,
             id,
-            recipients: [authorId, otherUserId as string],
             timestamp: decodeTime(message._id),
         };
     }

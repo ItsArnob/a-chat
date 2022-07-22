@@ -2,7 +2,6 @@ export interface User {
     id: string;
     username: string;
     passwordHash: string;
-    token?: string | null;
     profile?: {
         relations?: Relation[];
     } | null;
@@ -22,7 +21,6 @@ export const userNoProfileProjection = {
     _id: 1,
     username: 1,
     passwordHash: 1,
-    token: 1,
 };
 
 export const userProjection = {

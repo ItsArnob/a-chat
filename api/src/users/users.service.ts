@@ -1,4 +1,4 @@
-import { DATABASE_PROVIDER } from "@/constants";
+import { MONGODB_PROVIDER } from "@/constants";
 import { MongoDB } from "@/database/database.interface";
 import { OnlineSocketsList } from "@/dto/chat.dto";
 import { AddFriendDto, RemoveFriendDto } from "@/dto/user.dto";
@@ -26,7 +26,6 @@ import {
     UnauthorizedException
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { JwtService } from "@nestjs/jwt";
 import bcrypt from "bcrypt";
 import { UpdateFilter } from "mongodb";
 import { ulid } from "ulid";
@@ -36,12 +35,11 @@ export class UsersService {
     private logger = new Logger(UsersService.name);
 
     constructor(
-        private jwtService: JwtService,
-        @Inject(DATABASE_PROVIDER)
+        @Inject(MONGODB_PROVIDER)
         private mongo: MongoDB,
         private configService: ConfigService
     ) {}
-    async findOneByName(username: string): Promise<User> {
+    async findOneByName(username: string): Promise<User | null> {
         const result = await this.mongo.users.findOne(
             { username },
             {
@@ -49,14 +47,14 @@ export class UsersService {
                 collation: { locale: "en", strength: 2 },
             }
         );
-        if (!result) throw new NotFoundException("User not found.");
+        if (!result) return null;
         const { _id: id, ...user } = result;
         return {
             id,
             ...user,
         };
     }
-    async findOneNoProfileByName(username: string): Promise<UserNoProfile> {
+    async findOneNoProfileByName(username: string): Promise<UserNoProfile | null> {
         const result = await this.mongo.users.findOne<UserNoProfileDoc>(
             { username },
             {
@@ -64,7 +62,7 @@ export class UsersService {
                 collation: { locale: "en", strength: 2 },
             }
         );
-        if (!result) throw new NotFoundException("User not found.");
+        if (!result) return null;
 
         const { _id: id, ...user } = result;
         return {
@@ -73,50 +71,26 @@ export class UsersService {
         };
     }
 
-    async findOneById(userId: string): Promise<User> {
+    async findOneById(userId: string): Promise<User | null> {
         const result = await this.mongo.users.findOne(
             {
                 _id: userId,
             },
             { projection: userProjection }
         );
-        if (!result) throw new NotFoundException("Account not found.");
+        if (!result) return null;
         const { _id: id, ...user } = result;
         return { id, ...user };
     }
 
-    async findOneNoProfileById(userId: string): Promise<UserNoProfile> {
+    async findOneNoProfileById(userId: string): Promise<UserNoProfile | null> {
         const result = await this.mongo.users.findOne<UserNoProfileDoc>(
             { _id: userId },
             { projection: userNoProfileProjection }
         );
-        if (!result) throw new NotFoundException("Account not found.");
+        if (!result) return null;
         const { _id: id, ...user } = result;
         return { id, ...user };
-    }
-
-    async findOneByToken(token: string): Promise<User> {
-        const userToken = await this.jwtService
-            .verifyAsync(token)
-            .catch((e) => {});
-        if (!userToken)
-            throw new UnauthorizedException("Invalid authentication token.");
-
-        const result = await this.mongo.users.findOne(
-            {
-                token: userToken.jti as string,
-            },
-            {
-                projection: userProjection,
-            }
-        );
-        if (!result)
-            throw new NotFoundException("Invalid authentication token.");
-        const { _id: id, ...user } = result;
-        return {
-            id,
-            ...user,
-        };
     }
 
     async findRelationsOfUser(id: string): Promise<UserRelation[]> {
@@ -171,23 +145,6 @@ export class UsersService {
         return user?.profile?.relations?.map((user) => user.id) || [];
     }
 
-    async setToken(userId: string, tokenId: string | null): Promise<void> {
-        const updateData: Partial<UserDoc> | UpdateFilter<UserDoc> = tokenId
-            ? { $set: { token: tokenId } }
-            : {
-                  $unset: {
-                      token: "",
-                  },
-              };
-        await this.mongo.users.updateOne(
-            {
-                _id: userId,
-            },
-            updateData
-        );
-        return;
-    }
-
     async addFriend(
         receiverUsernameOrId: string,
         sender: UserNoProfile,
@@ -196,6 +153,8 @@ export class UsersService {
         const receiverUser = isId
             ? await this.findOneById(receiverUsernameOrId)
             : await this.findOneByName(receiverUsernameOrId);
+
+        if (!receiverUser) throw new NotFoundException("User not found.");
 
         if (receiverUser.id === sender.id)
             throw new ConflictException("You can't add yourself as a friend.");
@@ -228,6 +187,7 @@ export class UsersService {
                                 },
                                 {
                                     $set: {
+                                        //@ts-ignore FIXME: seems like a bug in mongodb types not sure.
                                         "profile.relations.$.status":
                                             RelationStatus.Friend,
                                     },
@@ -241,6 +201,7 @@ export class UsersService {
                                 },
                                 {
                                     $set: {
+                                        //@ts-ignore FIXME: seems like a bug in mongodb types not sure.
                                         "profile.relations.$.status":
                                             RelationStatus.Friend,
                                     },
@@ -343,13 +304,15 @@ export class UsersService {
         user: UserNoProfile
     ): Promise<RemoveFriendDto> {
         const userProfile = await this.findOneById(user.id);
+        if(!userProfile) throw new NotFoundException("User not found.");
         const relationship = userProfile.profile?.relations?.find(
             (relation) => relation.id === userId
         );
         if (!relationship) throw new NotFoundException("User not found.");
         let message: string;
 
-        const removeFriendTransaction = async () => {
+        const removeFriendTransaction = async (wasFriend?: boolean) => {
+            let chatId: string | undefined;
             const session = this.mongo.client.startSession();
             await session.withTransaction(async () => {
                 await this.mongo.users.updateOne(
@@ -378,11 +341,21 @@ export class UsersService {
                     },
                     { session }
                 );
+                if(wasFriend) {
+                    const chat = await this.mongo.chats.findOne<{ _id: string }>({
+                        chatType: ChatType.Direct,
+                        "recipients.id": {
+                            $all: [userId, userProfile.id],
+                        },
+                    }, { projection: { _id: 1 }});
+                    if(chat) chatId = chat._id;
+                }
             });
             return {
                 user: {
                     id: userId,
                 },
+                chatId,
                 message,
             };
         };
@@ -393,7 +366,7 @@ export class UsersService {
                 throw new ConflictException("You blocked this user.");
             case RelationStatus.Friend:
                 message = "Friend removed.";
-                return await removeFriendTransaction();
+                return await removeFriendTransaction(true);
             case RelationStatus.Outgoing:
                 message = "Friend request canceled.";
                 return await removeFriendTransaction();

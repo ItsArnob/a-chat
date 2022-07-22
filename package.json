@@ -21,10 +21,13 @@
         "api"
     ],
     "dependencies": {
-        "concurrently": "^7.2.1",
-        "random-sentence": "^1.0.4"
+        "concurrently": "^7.2.1"
     },
     "devDependencies": {
         "prettier": "^2.7.0"
+    },
+    "packageManager": "yarn@3.2.2",
+    "resolutions": {
+        "passport-http-bearer@1.0.1": "patch:passport-http-bearer@npm:1.0.1#.yarn/patches/passport-http-bearer-npm-1.0.1-482b7dfd57.patch"
     }
 }

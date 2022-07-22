@@ -1,5 +1,6 @@
 import { WsExceptionFilter } from "@/common/filters/ws-exception.filter";
 import { OnlineSocketsList } from "@/dto/chat.dto";
+import { ChatType } from "@/models/chat.model";
 import { RelationStatus } from "@/models/user.model";
 import { WebsocketService } from "@/websocket/websocket.service";
 import { HttpException, Logger, NotFoundException, UnauthorizedException, UseFilters } from "@nestjs/common";
@@ -22,23 +23,27 @@ export class WebsocketGateway
         try {
             const connectedAt = Date.now();
 
-            const data = await this.websocketService.authenticateUserFromSocket(
+            const { sessionId, ...data } = await this.websocketService.authenticateUserFromSocket(
                 client,
                 this.sockets
             );
-            client.join(data.id);
+
+            const friendIds = data.users
+            .filter((user) => user.relationship === RelationStatus.Friend)
+            .map((user) => user.id);
+
+            const friendsChats = friendIds.length ? data.chats.filter((chat) => {
+                if(chat.chatType !== ChatType.Direct) return;
+                return !!chat.recipients.find(recipient => friendIds.includes(recipient.id))
+            }) : [];
+
+            client.join([`user:${data.id}`, `user-sessid:${sessionId}`, ...friendsChats.map(chat => `chat-direct:${chat.id}`)]);
             client.user = { id: data.id };
             client.emit("Ready", data);
 
-            const friendIds = data.users
-                .filter((user) => user.relationship === RelationStatus.Friend)
-                .map((user) => user.id);
 
             if (friendIds.length) {
-                this.websocketService.emitUpdateUser(friendIds, {
-                    id: client.user.id,
-                    online: true,
-                });
+                this.websocketService.emitUserOnline(client.user.id, friendIds, true);
             }
             if (this.sockets.has(client.user.id)) {
                 let socket = this.sockets.get(client.user.id) as {
@@ -63,25 +68,19 @@ export class WebsocketGateway
                 duration: Date.now() - connectedAt,
             });
         } catch (e: any) {
-            if (e instanceof HttpException) {
-                // unauthorized - invalid jwt token
-                // notfound - token not related to a user - invalid token
-                if (e instanceof UnauthorizedException) {
-                    this.logger.warn({
-                        event: `ws_connect_fail,malformed_jwt`,
-                        msg: `Malformed jwt provided or invalid signature.`,
-                    });
-                } else if (e instanceof NotFoundException) {
-                    this.logger.warn({
-                        event: `ws_connect_fail,session_use_after_expire`,
-                        msg: "User attempted to use a session token that doesn't exist.",
-                    });
-                }
+            
+            if (e instanceof UnauthorizedException) {
+
                 this.websocketService.emitException(
                     client,
                     "onGatewayConnection",
-                    e.message
+                    "Invalid session."
                 );
+                this.logger.warn({
+                    event: `ws_connect_fail,invalid_session`,
+                    msg: e.message,
+                });
+            
             } else {
                 this.websocketService.emitException(
                     client,
@@ -121,12 +120,10 @@ export class WebsocketGateway
                 }
                 const friendIds =
                     await this.websocketService.getFriendIdsFromSocket(client);
-                const friendIdsRooms = friendIds.map((id) => id);
-                if (typeof online === "object" && friendIdsRooms.length)
-                    this.websocketService.emitUpdateUser(friendIdsRooms, {
-                        id: client.user.id,
-                        online,
-                    });
+                if (typeof online === "object" && friendIds.length) {
+                    this.websocketService.emitUserOnline(client.user.id, friendIds, online);
+                }
+
 
                 this.logger.log({
                     event: `ws_disconnect_success:${client.user.id}`,

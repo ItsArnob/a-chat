@@ -20,21 +20,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
         try {
             return await this.authService.validateUser(username, password);
         } catch (e) {
-            if (e instanceof NotFoundException)
-                this.logger.warn({
-                    event: `authn_login_fail:${username}`,
-                    msg: `Non-existent user account login attempted.`,
-                });
-            else if (e instanceof UnauthorizedException)
-                this.logger.warn({
-                    event: `authn_login_fail:${(e.getResponse() as any).id}`,
-                    msg: "User attempted to log in using an incorrect password.",
-                });
-
-            if (
-                e instanceof UnauthorizedException ||
-                e instanceof NotFoundException
-            ) {
+            if (e instanceof UnauthorizedException) {
                 throw new UnauthorizedException(
                     "Invalid username or password."
                 );

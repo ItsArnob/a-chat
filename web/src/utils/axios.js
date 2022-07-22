@@ -33,10 +33,10 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(async(config) => {
+    const session = localforage.getItem("session");
+    if (session) {
+        config.headers.Authorization = `Bearer ${session.token}`;
     }
     return config;
 });

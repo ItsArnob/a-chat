@@ -3,12 +3,12 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { LoggerModule } from "nestjs-pino";
 import { ulid } from "ulid";
 
-import { AuthModule } from "./auth/auth.module";
-import { ChatModule } from "./chat/chat.module";
+import { AuthModule } from "@/auth/auth.module";
+import { ChatModule } from "@/chat/chat.module";
 import { config, validate } from "./config";
-import { DatabaseModule } from "./database/database.module";
-import { UsersModule } from "./users/users.module";
-import { WebsocketModule } from "./websocket/websocket.module";
+import { DatabaseModule } from "@/database/database.module";
+import { UsersModule } from "@/users/users.module";
+import { WebsocketModule } from "@/websocket/websocket.module";
 
 @Module({
     imports: [
@@ -23,33 +23,36 @@ import { WebsocketModule } from "./websocket/websocket.module";
             useFactory: async (config: ConfigService) => {
                 return {
                     pinoHttp: {
+                        autoLogging: !config.get("disableRequestLogging"),
                         level: config.get("logLevel") as string,
                         genReqId() {
                             return ulid();
                         },
-                        customProps(req: any, res) {
-                            if (req.user) return { userId: req.user.id };
-                            return {};
+                        customProps(req: any, res: any) {
+
+                            return { 
+                                user_id: req.user?.id,
+                                request_id: ulid(),
+                                method: req.method,
+                                url: req.url,
+                                status_code: res.statusCode,
+                                
+                            };
                         },
-                        customErrorObject(req, res, err, loggableObject) {
+                        customAttributeKeys: {
+                            responseTime: "response_time"
+                        },
+                        customErrorObject() {
                             return {
                                 err: "see error logs related to this request id.",
                             };
                         },
                         serializers: {
                             req(req) {
-                                return {
-                                    id: req.id,
-                                    method: req.method,
-                                    url: req.url,
-                                };
+                                return;
                             },
                             res(res) {
-                                return {
-                                    status_code: res.statusCode,
-                                    content_length:
-                                        res.headers["content-length"],
-                                };
+                                return;
                             },
                         },
                     },
@@ -63,4 +66,4 @@ import { WebsocketModule } from "./websocket/websocket.module";
         WebsocketModule,
     ],
 })
-export class AppModule {}
+export class AppModule {};
