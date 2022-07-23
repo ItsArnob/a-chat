@@ -22,7 +22,7 @@ export const initSocket = async () => {
     let buffer = [];
     let shouldBuffer = true;
     const session = await localforage.getItem("session");
-    socket.auth.token = session.token;
+    socket.auth.token = session?.token;
     socket.removeAllListeners();
 
     socket.onAny((name, ...args) => {
