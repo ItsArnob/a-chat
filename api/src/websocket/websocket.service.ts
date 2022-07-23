@@ -14,6 +14,7 @@ import {
 import { ModuleRef } from "@nestjs/core";
 import { Socket } from "socket.io";
 import { AuthService } from "@/auth/auth.service";
+import { Rooms } from "./websocket.interface";
 
 @Injectable()
 export class WebsocketService implements OnModuleInit {
@@ -112,16 +113,19 @@ export class WebsocketService implements OnModuleInit {
     }
 
     emitFriendAdded(userId: string, receiverUserId: string, chat: Chat) {
-        this.emitUpdateUser(`user:${userId}`, {
+
+        this.emitUpdateUser(this.userRoom(userId), {
             id: receiverUserId,
             online: this.userOnline(receiverUserId),
             relationship: RelationStatus.Friend,
         });
-        this.emitUpdateUser(`user:${receiverUserId}`, {
+
+        this.emitUpdateUser(this.userRoom(receiverUserId), {
             id: userId,
             online: this.userOnline(userId),
             relationship: RelationStatus.Friend,
         });
+
         this.emitNewDirectChatJoin([userId, receiverUserId], chat);
     }
 
@@ -129,13 +133,13 @@ export class WebsocketService implements OnModuleInit {
         user: { id: string; username: string },
         receiverUser: { id: string; username: string }
     ) {
-        this.emitUpdateUser(`user:${user.id}`, {
+        this.emitUpdateUser(this.userRoom(user.id), {
             id: receiverUser.id,
             username: receiverUser.username,
             relationship: RelationStatus.Outgoing,
         });
 
-        this.emitUpdateUser(`user:${receiverUser.id}`, {
+        this.emitUpdateUser(this.userRoom(receiverUser.id), {
             id: user.id,
             username: user.username,
             relationship: RelationStatus.Incoming,
@@ -149,7 +153,7 @@ export class WebsocketService implements OnModuleInit {
         chatId?: string
     ) {
         this.emitUpdateUser(
-            `user:${userId}`,
+            this.userRoom(userId),
             {
                 id: receiverUserId,
                 relationship: RelationStatus.None,
@@ -159,7 +163,7 @@ export class WebsocketService implements OnModuleInit {
         );
 
         this.emitUpdateUser(
-            `user:${receiverUserId}`,
+            this.userRoom(receiverUserId),
             {
                 id: userId,
                 relationship: RelationStatus.None,
@@ -178,7 +182,7 @@ export class WebsocketService implements OnModuleInit {
         online: Date | boolean
     ) {
         this.emitUpdateUser(
-            recipients.map((id) => `user:${id}`),
+            recipients.map((id) => this.userRoom(id)),
             {
                 id: userId,
                 online,
@@ -199,16 +203,16 @@ export class WebsocketService implements OnModuleInit {
 
     emitNewDirectChatJoin(userIds: string[], chat: Chat) {
         this.joinDirectChatRoom(userIds, chat.id);
-        this.emitUpdateChat(`chat-direct:${chat.id}`, chat);
+        this.emitUpdateChat(this.directChatRoom(chat.id), chat);
     }
 
-    emitUpdateChat(emitTo: string, chat: Chat) {
+    emitUpdateChat(emitTo: string | string[], chat: Chat) {
         this.websocketGateway.server.to(emitTo).emit("Chat:Update", { chat });
     }
 
-    emitNewMessage(chatId: string, message: Message, ackId?: string) {
+    emitNewMessage(emitTo: string | string[], message: Message, ackId?: string) {
         this.websocketGateway.server
-            .to(`chat-direct:${chatId}`)
+            .to(emitTo)
             .emit("Message:New", { ...message, ackId: ackId });
     }
 
@@ -221,20 +225,32 @@ export class WebsocketService implements OnModuleInit {
 
     joinDirectChatRoom(userIds: string[], chatId: string) {
         this.websocketGateway.server
-            .in(userIds.map((id) => `user:${id}`))
-            .socketsJoin(`chat-direct:${chatId}`);
+            .in(userIds.map((id) => this.userRoom(id)))
+            .socketsJoin(this.directChatRoom(chatId));
     }
     leaveDirectChatRoom(userIds: string[], chatId: string) {
         this.websocketGateway.server
-            .in(userIds.map((id) => `user:${id}`))
-            .socketsLeave(`chat-direct:${chatId}`);
+            .in(userIds.map((id) => this.userRoom(id)))
+            .socketsLeave(this.directChatRoom(chatId));
     }
     userOnline(userId: string): Date | boolean {
         return this.websocketGateway.sockets.get(userId)?.online || false;
     }
 
     logoutSession(sid: string) {
-        this.websocketGateway.server.to(`user-sess:${sid}`).disconnectSockets();
+        this.websocketGateway.server.to(this.userSessRoom(sid)).disconnectSockets();
+    }
+
+    userRoom(userId: string) {
+        return `${Rooms.User}:${userId}`
+    }
+
+    directChatRoom(chatId: string) {
+        return `${Rooms.DirectChat}:${chatId}`
+    }
+
+    userSessRoom(sessionId: string) {
+        return `${Rooms.UserSessionId}:${sessionId}`
     }
 
     onModuleInit(): any {
