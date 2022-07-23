@@ -1,15 +1,30 @@
 import { AuthenticatedGuard } from "@/common/guards/authenticated.guard";
 import { LoginGuard } from "@/common/guards/login.guard";
-import { CreateUserDto, GetUserDto, LoginDto, LoginResponseDto } from "@/dto/auth.dto";
+import {
+    CreateUserDto,
+    GetUserDto,
+    LoginDto,
+    LoginResponseDto,
+} from "@/dto/auth.dto";
 import { UsersService } from "@/users/users.service";
 import { WebsocketService } from "@/websocket/websocket.service";
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, InternalServerErrorException, Post, Req, UseGuards } from "@nestjs/common";
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    HttpStatus,
+    InternalServerErrorException,
+    Post,
+    Req,
+    UseGuards,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
 import { promisify } from "util";
 import { AuthGuard } from "@nestjs/passport";
 import { AuthService } from "./auth.service";
-
 
 @Controller("auth")
 export class AuthController {
@@ -23,8 +38,10 @@ export class AuthController {
     @HttpCode(200)
     @UseGuards(LoginGuard)
     async login(@Req() req: Request, @Body() body: LoginDto) {
-        
-        const session = await this.authService.createSession(req.user.id, req.user.sessionName);
+        const session = await this.authService.createSession(
+            req.user.id,
+            req.user.sessionName
+        );
 
         return { id: req.user.id, username: req.user.username, session };
     }
@@ -40,7 +57,7 @@ export class AuthController {
         return {
             id: req.user.id,
             username: req.user.username,
-            sessionName: req.user.sessionName
+            sessionName: req.user.sessionName,
         };
     }
 

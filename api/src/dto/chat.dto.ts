@@ -1,6 +1,15 @@
 import { ULID_PATTERN } from "@/constants";
 import { Transform, TransformFnParams } from "class-transformer";
-import { IsOptional, IsString, Length, Matches, Max, MaxLength, Min, MinLength } from "class-validator";
+import {
+    IsOptional,
+    IsString,
+    Length,
+    Matches,
+    Max,
+    MaxLength,
+    Min,
+    MinLength,
+} from "class-validator";
 
 export class messageDto {
     @MinLength(1)

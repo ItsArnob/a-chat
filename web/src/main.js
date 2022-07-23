@@ -18,7 +18,7 @@ import {
     faMessage,
     faTriangleExclamation,
     faUserXmark,
-    faXmark
+    faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import FloatingVue from "floating-vue";

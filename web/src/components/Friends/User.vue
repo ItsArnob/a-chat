@@ -152,7 +152,13 @@ import Spinner from "@/components/icons/Spinner.vue";
 import { useActiveStatusRef } from "@/composables/ActiveStatus";
 import { useChatsStore } from "@/stores/chats";
 import { useUserStore } from "@/stores/user";
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from "@headlessui/vue";
+import {
+    Dialog,
+    DialogPanel,
+    DialogTitle,
+    TransitionChild,
+    TransitionRoot,
+} from "@headlessui/vue";
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";

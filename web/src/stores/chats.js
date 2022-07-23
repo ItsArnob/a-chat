@@ -13,14 +13,13 @@ export const useChatsStore = defineStore({
     getters: {
         chatsWithProperData(state) {
             const chats = [];
-            state.chats.forEach(chat => {
+            state.chats.forEach((chat) => {
                 const chatNormalized = this.getChatById(chat.id);
-                if(chatNormalized) chats.push(chatNormalized);
-            })
-            return chats.sort(
-                    (a, b) =>
-                        compareString(b.lastMessage?.id, a.lastMessage?.id)
-                );
+                if (chatNormalized) chats.push(chatNormalized);
+            });
+            return chats.sort((a, b) =>
+                compareString(b.lastMessage?.id, a.lastMessage?.id)
+            );
         },
         getChatById(state) {
             return (id) => {

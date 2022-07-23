@@ -33,7 +33,7 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
-api.interceptors.request.use(async(config) => {
+api.interceptors.request.use(async (config) => {
     const session = localforage.getItem("session");
     if (session) {
         config.headers.Authorization = `Bearer ${session.token}`;

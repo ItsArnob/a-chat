@@ -12,7 +12,6 @@ export function useActiveStatusRef(onlineStatus) {
         if (onlineStatus.value === true) return "Active now";
         if (typeof onlineStatus.value === "string")
             return `Active ${dayjs(onlineStatus.value).fromNow()}`;
-
     });
 
     return { activeStatus };

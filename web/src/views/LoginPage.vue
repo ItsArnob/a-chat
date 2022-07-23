@@ -92,8 +92,9 @@ const isAccountCreated = ref(false);
 const isSignupFormOpen = ref(false);
 
 const userStore = useUserStore();
-useTitle(computed(() => isSignupFormOpen.value ? "Create an account" : "Log In"));
-
+useTitle(
+    computed(() => (isSignupFormOpen.value ? "Create an account" : "Log In"))
+);
 
 async function login(credentials) {
     isFormSubmitting.value = true;
@@ -102,7 +103,7 @@ async function login(credentials) {
     userStore
         .login(credentials.username, credentials.password)
         .then((message) => {
-            if (!message.ok) setErrors("loginForm", [`${ message }`]);
+            if (!message.ok) setErrors("loginForm", [`${message}`]);
         })
         .finally(() => {
             isFormSubmitting.value = false;

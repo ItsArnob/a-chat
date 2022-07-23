@@ -13,7 +13,7 @@ import {
     userNoProfileProjection,
     userProjection,
     UserRelation,
-    userRelationsProjection
+    userRelationsProjection,
 } from "@/models/user.model";
 import {
     ConflictException,
@@ -23,7 +23,7 @@ import {
     InternalServerErrorException,
     Logger,
     NotFoundException,
-    UnauthorizedException
+    UnauthorizedException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import bcrypt from "bcrypt";
@@ -54,7 +54,9 @@ export class UsersService {
             ...user,
         };
     }
-    async findOneNoProfileByName(username: string): Promise<UserNoProfile | null> {
+    async findOneNoProfileByName(
+        username: string
+    ): Promise<UserNoProfile | null> {
         const result = await this.mongo.users.findOne<UserNoProfileDoc>(
             { username },
             {
@@ -304,7 +306,7 @@ export class UsersService {
         user: UserNoProfile
     ): Promise<RemoveFriendDto> {
         const userProfile = await this.findOneById(user.id);
-        if(!userProfile) throw new NotFoundException("User not found.");
+        if (!userProfile) throw new NotFoundException("User not found.");
         const relationship = userProfile.profile?.relations?.find(
             (relation) => relation.id === userId
         );
@@ -341,14 +343,19 @@ export class UsersService {
                     },
                     { session }
                 );
-                if(wasFriend) {
-                    const chat = await this.mongo.chats.findOne<{ _id: string }>({
-                        chatType: ChatType.Direct,
-                        "recipients.id": {
-                            $all: [userId, userProfile.id],
+                if (wasFriend) {
+                    const chat = await this.mongo.chats.findOne<{
+                        _id: string;
+                    }>(
+                        {
+                            chatType: ChatType.Direct,
+                            "recipients.id": {
+                                $all: [userId, userProfile.id],
+                            },
                         },
-                    }, { projection: { _id: 1 }});
-                    if(chat) chatId = chat._id;
+                        { projection: { _id: 1 } }
+                    );
+                    if (chat) chatId = chat._id;
                 }
             });
             return {

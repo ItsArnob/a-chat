@@ -29,18 +29,16 @@ import { WebsocketModule } from "@/websocket/websocket.module";
                             return ulid();
                         },
                         customProps(req: any, res: any) {
-
-                            return { 
+                            return {
                                 user_id: req.user?.id,
                                 request_id: ulid(),
                                 method: req.method,
                                 url: req.url,
                                 status_code: res.statusCode,
-                                
                             };
                         },
                         customAttributeKeys: {
-                            responseTime: "response_time"
+                            responseTime: "response_time",
                         },
                         customErrorObject() {
                             return {
@@ -66,4 +64,4 @@ import { WebsocketModule } from "@/websocket/websocket.module";
         WebsocketModule,
     ],
 })
-export class AppModule {};
+export class AppModule {}

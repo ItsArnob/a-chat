@@ -4,7 +4,7 @@ import {
     InternalServerErrorException,
     Logger,
     NotFoundException,
-    UnauthorizedException
+    UnauthorizedException,
 } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-local";

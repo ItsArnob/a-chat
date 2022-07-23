@@ -1,5 +1,8 @@
 <template>
-    <button class="text-emerald-600 hover:text-emerald-500" @click="() => logout(true, true)">
+    <button
+        class="text-emerald-600 hover:text-emerald-500"
+        @click="() => logout(true, true)"
+    >
         <font-awesome-icon
             icon="fa-solid fa-arrow-right-from-bracket"
             class="w-7 h-7"

@@ -25,7 +25,7 @@ export const useMessagesStore = defineStore({
                 return [];
             const sortedMessages = state.messagesByChat[
                 chatsStore.currentlyOpenChatId
-                ].messages.sort((a, b) => compareString(a.id, b.id));
+            ].messages.sort((a, b) => compareString(a.id, b.id));
 
             let lastMessageAuthor;
             return sortedMessages.map((message, index) => {
@@ -184,7 +184,6 @@ export const useMessagesStore = defineStore({
                     id: chatId,
                     beginningOfChatReached: true,
                 });
-
             }
         },
         async loadMessageBeforeId(messageId, chatId) {
@@ -212,13 +211,19 @@ export const useMessagesStore = defineStore({
             await this.saveMessage(chatId, newId, message.content);
         },
         keepLastNMessages(chatId, messagesCount) {
-            if (messagesCount >= this.messagesByChat[chatId].messages.length) return;
+            if (messagesCount >= this.messagesByChat[chatId].messages.length)
+                return;
             const chatsStore = useChatsStore();
 
-            const messagesSorted = this.messagesByChat[chatId].messages.sort((a, b) => compareString(a.id, b.id));
+            const messagesSorted = this.messagesByChat[chatId].messages.sort(
+                (a, b) => compareString(a.id, b.id)
+            );
             messagesSorted.splice(0, messagesSorted.length - messagesCount);
 
-            chatsStore.updateChat({ id: chatId, beginningOfChatReached: undefined });
+            chatsStore.updateChat({
+                id: chatId,
+                beginningOfChatReached: undefined,
+            });
             this.messagesByChat[chatId].messages = messagesSorted;
         },
         isMessagesStale(chatId) {

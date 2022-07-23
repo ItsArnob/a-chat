@@ -19,7 +19,10 @@ setInterval(() => internalMiscStore.updateTime(Date.now()), 1000);
     <router-view v-slot="{ Component }">
         <Transition name="fade">
             <component :is="Component" v-if="userStore.auth.initialized" />
-            <div v-else class="fixed w-full h-full flex items-center justify-center">
+            <div
+                v-else
+                class="fixed w-full h-full flex items-center justify-center"
+            >
                 <spinner class="w-16 h-16" />
             </div>
         </Transition>

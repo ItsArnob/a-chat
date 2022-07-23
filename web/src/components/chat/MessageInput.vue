@@ -36,7 +36,6 @@ import { ChevronRightIcon, UploadIcon } from "@heroicons/vue/outline";
 import { onStartTyping } from "@vueuse/core";
 import { computed, defineEmits, nextTick, ref } from "vue";
 
-
 const props = defineProps(["chatId"]);
 const textarea = ref();
 const message = ref("");
@@ -74,5 +73,4 @@ const submitMessage = async () => {
 onStartTyping(() => {
     if (!textarea.value.active) textarea.value.focus();
 });
-
 </script>
