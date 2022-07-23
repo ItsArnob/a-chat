@@ -31,6 +31,11 @@ export const config = () => {
             name: process.env.DB_NAME || "a_chat",
             uri: process.env.DB_URI || "mongodb://localhost:27017",
         },
+        socketioAdmin: {
+            username: process.env.SOCKETIO_ADMIN_USERNAME,
+            password: process.env.SOCKETIO_ADMIN_PASSWORD_HASH,
+            enabled: process.env.SOCKETIO_ADMIN_USERNAME && process.env.SOCKETIO_ADMIN_PASSWORD_HASH,
+        },
         redis: {
             uri: process.env.REDIS_URI || "redis://localhost:6379",
         },

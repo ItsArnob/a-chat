@@ -123,6 +123,7 @@ export class ChatService {
         const otherUserId = chat.recipients.find(
             (recipient) => recipient.id !== authorId
         )?.id;
+        // NOTE: maybe dont fetch the entire relations array? instead only return the status from mongo? not sure if this a good optimizations or is needed. 
         const userRelations = await this.usersService.findRelationsOfUser(
             authorId
         );
