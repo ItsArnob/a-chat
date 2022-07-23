@@ -1,5 +1,11 @@
 import { LoginDto } from "@/dto/auth.dto";
-import { BadRequestException, ExecutionContext, HttpStatus, Injectable, Logger } from "@nestjs/common";
+import {
+    BadRequestException,
+    ExecutionContext,
+    HttpStatus,
+    Injectable,
+    Logger,
+} from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
@@ -10,11 +16,11 @@ export class LoginGuard extends AuthGuard("local") {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         const credentials = plainToInstance(LoginDto, request.body);
-        
+
         const validationErrors = await validate(credentials, {
             validationError: { target: false, value: false },
         });
-        
+
         if (validationErrors.length > 0) {
             const errors: any = {};
             validationErrors.forEach((err) => {
@@ -32,7 +38,8 @@ export class LoginGuard extends AuthGuard("local") {
             });
         }
         const result = (await super.canActivate(context)) as boolean;
-        if(credentials.friendlyName) request.sessionName = credentials.friendlyName;
+        if (credentials.friendlyName)
+            request.sessionName = credentials.friendlyName;
         return result;
     }
 }

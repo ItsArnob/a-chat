@@ -4,7 +4,7 @@ import { initSocket } from "@/utils/socket";
 import { compareString } from "@/utils/utils";
 import axios from "axios";
 import { defineStore } from "pinia";
-import localforage from 'localforage';
+import localforage from "localforage";
 
 export const useUserStore = defineStore({
     id: "user",
@@ -34,7 +34,7 @@ export const useUserStore = defineStore({
         getOutgoingRequests: (state) =>
             state.users
                 .filter((user) => user.relationship === "Outgoing")
-                .sort((a, b) => compareString(a.username, b.username))
+                .sort((a, b) => compareString(a.username, b.username)),
     },
     actions: {
         async login(username, password) {
@@ -43,7 +43,7 @@ export const useUserStore = defineStore({
                     username,
                     password,
                 })
-                .then(async(res) => {
+                .then(async (res) => {
                     await localforage.setItem("session", res.data.session);
                     initSocket();
 

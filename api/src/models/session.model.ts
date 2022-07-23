@@ -3,7 +3,7 @@ export interface Session {
     token: string;
     userId: string;
     expiresAt: Date;
-    name?: string; 
+    name?: string;
 }
 export interface SessionDoc extends Omit<Session, "id"> {
     _id: string;
@@ -14,5 +14,5 @@ export const sessionProjection = {
     token: 1,
     userId: 1,
     expiresAt: 1,
-    name: 1
-}
+    name: 1,
+};

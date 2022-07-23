@@ -1,6 +1,10 @@
 import { CustomIoAdapter } from "@/adapters/socketio";
 import { AppModule } from "@/app.module";
-import { BadRequestException, HttpStatus, ValidationPipe } from "@nestjs/common";
+import {
+    BadRequestException,
+    HttpStatus,
+    ValidationPipe,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -25,7 +29,7 @@ async function bootstrap() {
     if (config.get("trustProxy")) {
         app.set("trust proxy", 1);
     }
-    
+
     app.useGlobalPipes(
         new ValidationPipe({
             transform: true,
@@ -50,7 +54,7 @@ async function bootstrap() {
             },
         })
     );
-    
+
     app.useLogger(logger);
     app.useWebSocketAdapter(customIoAdapter);
     await app.listen(config.get("port") as number);

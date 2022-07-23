@@ -3,8 +3,19 @@ import { OnlineSocketsList } from "@/dto/chat.dto";
 import { ChatType } from "@/models/chat.model";
 import { RelationStatus } from "@/models/user.model";
 import { WebsocketService } from "@/websocket/websocket.service";
-import { HttpException, Logger, NotFoundException, UnauthorizedException, UseFilters } from "@nestjs/common";
-import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import {
+    HttpException,
+    Logger,
+    NotFoundException,
+    UnauthorizedException,
+    UseFilters,
+} from "@nestjs/common";
+import {
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    WebSocketGateway,
+    WebSocketServer,
+} from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 
 @WebSocketGateway({ cors: { origin: true, credentials: true } })
@@ -23,27 +34,39 @@ export class WebsocketGateway
         try {
             const connectedAt = Date.now();
 
-            const { sessionId, ...data } = await this.websocketService.authenticateUserFromSocket(
-                client,
-                this.sockets
-            );
+            const { sessionId, ...data } =
+                await this.websocketService.authenticateUserFromSocket(
+                    client,
+                    this.sockets
+                );
 
             const friendIds = data.users
-            .filter((user) => user.relationship === RelationStatus.Friend)
-            .map((user) => user.id);
+                .filter((user) => user.relationship === RelationStatus.Friend)
+                .map((user) => user.id);
 
-            const friendsChats = friendIds.length ? data.chats.filter((chat) => {
-                if(chat.chatType !== ChatType.Direct) return;
-                return !!chat.recipients.find(recipient => friendIds.includes(recipient.id))
-            }) : [];
+            const friendsChats = friendIds.length
+                ? data.chats.filter((chat) => {
+                      if (chat.chatType !== ChatType.Direct) return;
+                      return !!chat.recipients.find((recipient) =>
+                          friendIds.includes(recipient.id)
+                      );
+                  })
+                : [];
 
-            client.join([`user:${data.id}`, `user-sessid:${sessionId}`, ...friendsChats.map(chat => `chat-direct:${chat.id}`)]);
+            client.join([
+                `user:${data.id}`,
+                `user-sessid:${sessionId}`,
+                ...friendsChats.map((chat) => `chat-direct:${chat.id}`),
+            ]);
             client.user = { id: data.id };
             client.emit("Ready", data);
 
-
             if (friendIds.length) {
-                this.websocketService.emitUserOnline(client.user.id, friendIds, true);
+                this.websocketService.emitUserOnline(
+                    client.user.id,
+                    friendIds,
+                    true
+                );
             }
             if (this.sockets.has(client.user.id)) {
                 let socket = this.sockets.get(client.user.id) as {
@@ -68,9 +91,7 @@ export class WebsocketGateway
                 duration: Date.now() - connectedAt,
             });
         } catch (e: any) {
-            
             if (e instanceof UnauthorizedException) {
-
                 this.websocketService.emitException(
                     client,
                     "onGatewayConnection",
@@ -80,7 +101,6 @@ export class WebsocketGateway
                     event: `ws_connect_fail,invalid_session`,
                     msg: e.message,
                 });
-            
             } else {
                 this.websocketService.emitException(
                     client,
@@ -121,9 +141,12 @@ export class WebsocketGateway
                 const friendIds =
                     await this.websocketService.getFriendIdsFromSocket(client);
                 if (typeof online === "object" && friendIds.length) {
-                    this.websocketService.emitUserOnline(client.user.id, friendIds, online);
+                    this.websocketService.emitUserOnline(
+                        client.user.id,
+                        friendIds,
+                        online
+                    );
                 }
-
 
                 this.logger.log({
                     event: `ws_disconnect_success:${client.user.id}`,

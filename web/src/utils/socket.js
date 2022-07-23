@@ -4,15 +4,15 @@ import { useInternalMiscStore } from "@/stores/internalMisc";
 import { useMessagesStore } from "@/stores/messages";
 import { useUserStore } from "@/stores/user";
 import io from "socket.io-client";
-import localforage from 'localforage';
+import localforage from "localforage";
 
 import { logger } from "./logger";
 
 export const socket = io(import.meta.env.VITE_API_URL, {
     autoConnect: false,
-    auth: { token: '' }
+    auth: { token: "" },
 });
-export const initSocket = async() => {
+export const initSocket = async () => {
     const userStore = useUserStore();
     const chatsStore = useChatsStore();
     const internalMiscStore = useInternalMiscStore();
@@ -38,7 +38,7 @@ export const initSocket = async() => {
             users: data.users,
             user: {
                 id: data.id,
-                username: data.username
+                username: data.username,
             },
         });
         chatsStore.setChats(data.chats);
@@ -79,7 +79,11 @@ export const initSocket = async() => {
     // Error handling.
 
     socket.on("exception", (data) => {
-        if (data.message === "Invalid authentication token." || data.message === "Unauthorized" || data.message === "Invalid session.") {
+        if (
+            data.message === "Invalid authentication token." ||
+            data.message === "Unauthorized" ||
+            data.message === "Invalid session."
+        ) {
             if (!userStore.auth.initialized) {
                 userStore.setInitialized(true);
             }
@@ -97,10 +101,9 @@ export const initSocket = async() => {
         internalMiscStore.setWsNetworkError(true);
     });
     socket.on("disconnect", (data) => {
-        if(data === "io server disconnect") {
-            if(userStore.getUser) logout(true, true);
-        }
-        else messagesStore.setAllMessagesStale();
+        if (data === "io server disconnect") {
+            if (userStore.getUser) logout(true, true);
+        } else messagesStore.setAllMessagesStale();
     });
     socket.connect();
 };

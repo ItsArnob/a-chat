@@ -4,7 +4,13 @@ import { Chat, Message } from "@/models/chat.model";
 import { RelationStatus, User } from "@/models/user.model";
 import { UsersService } from "@/users/users.service";
 import { WebsocketGateway } from "@/websocket/websocket.gateway";
-import { Inject, Injectable, Logger, OnModuleInit, UnauthorizedException } from "@nestjs/common";
+import {
+    Inject,
+    Injectable,
+    Logger,
+    OnModuleInit,
+    UnauthorizedException,
+} from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
 import { Socket } from "socket.io";
 import { AuthService } from "@/auth/auth.service";
@@ -17,34 +23,41 @@ export class WebsocketService implements OnModuleInit {
     private websocketGateway: WebsocketGateway;
     private logger = new Logger(WebsocketService.name);
 
-    constructor(
-        private moduleRef: ModuleRef,
-    ) {}
+    constructor(private moduleRef: ModuleRef) {}
 
-    async getUserFromSocket(socket: Socket): Promise<{ user: User, sessionId: string }> {
+    async getUserFromSocket(
+        socket: Socket
+    ): Promise<{ user: User; sessionId: string }> {
         let token;
-        if (typeof socket.handshake.auth?.token === 'string') {
+        if (typeof socket.handshake.auth?.token === "string") {
             this.logger.debug("token found in auth object");
             token = socket.handshake.auth.token;
         } else {
             const authHeader = socket.handshake.headers.authorization;
-            const parts = authHeader?.split(' ');
+            const parts = authHeader?.split(" ");
             if (parts?.length == 2) {
-                let scheme = parts[0]
+                let scheme = parts[0];
                 let credentials = parts[1];
 
                 if (/^Bearer$/i.test(scheme)) {
                     token = credentials;
-                    this.logger.debug("token found in authorization header.")
+                    this.logger.debug("token found in authorization header.");
                 } else {
-                    throw new UnauthorizedException("token not provided to authenticate with.");
+                    throw new UnauthorizedException(
+                        "token not provided to authenticate with."
+                    );
                 }
             } else {
-                this.logger.debug("token not found in auth object/authorization header.");
-                throw new UnauthorizedException("token not provided to authenticate with.");
+                this.logger.debug(
+                    "token not found in auth object/authorization header."
+                );
+                throw new UnauthorizedException(
+                    "token not provided to authenticate with."
+                );
             }
         }
-        const { sessionId, sessionName, ...user } = await this.authService.validateToken(token, true);
+        const { sessionId, sessionName, ...user } =
+            await this.authService.validateToken(token, true);
 
         return { user, sessionId };
     }
@@ -91,7 +104,7 @@ export class WebsocketService implements OnModuleInit {
             users: relatedUsers,
             chats,
             lastMessages,
-            sessionId
+            sessionId,
         };
     }
     async getFriendIdsFromSocket(client: Socket) {
@@ -110,7 +123,6 @@ export class WebsocketService implements OnModuleInit {
             relationship: RelationStatus.Friend,
         });
         this.emitNewDirectChatJoin([userId, receiverUserId], chat);
-
     }
 
     emitNewFriendRequest(
@@ -130,7 +142,12 @@ export class WebsocketService implements OnModuleInit {
         });
     }
 
-    emitFriendRemoved(userId: string, receiverUserId: string, message: string, chatId?: string) {
+    emitFriendRemoved(
+        userId: string,
+        receiverUserId: string,
+        message: string,
+        chatId?: string
+    ) {
         this.emitUpdateUser(
             `user:${userId}`,
             {
@@ -151,14 +168,22 @@ export class WebsocketService implements OnModuleInit {
             message
         );
 
-        if(message === "Friend removed." && chatId) this.leaveDirectChatRoom([userId, receiverUserId], chatId);
+        if (message === "Friend removed." && chatId)
+            this.leaveDirectChatRoom([userId, receiverUserId], chatId);
     }
 
-    emitUserOnline(userId: string, recipients: string[], online: Date | boolean) {
-        this.emitUpdateUser(recipients.map((id) => `user:${id}`), {
-            id: userId,
-            online,
-        });
+    emitUserOnline(
+        userId: string,
+        recipients: string[],
+        online: Date | boolean
+    ) {
+        this.emitUpdateUser(
+            recipients.map((id) => `user:${id}`),
+            {
+                id: userId,
+                online,
+            }
+        );
     }
 
     emitUpdateUser(
@@ -172,7 +197,6 @@ export class WebsocketService implements OnModuleInit {
         });
     }
 
-
     emitNewDirectChatJoin(userIds: string[], chat: Chat) {
         this.joinDirectChatRoom(userIds, chat.id);
         this.emitUpdateChat(chat.id, chat);
@@ -181,7 +205,6 @@ export class WebsocketService implements OnModuleInit {
     emitUpdateChat(emitTo: string, chat: Chat) {
         this.websocketGateway.server.to(emitTo).emit("Chat:Update", { chat });
     }
-
 
     emitNewMessage(chatId: string, message: Message, ackId?: string) {
         this.websocketGateway.server
@@ -197,10 +220,14 @@ export class WebsocketService implements OnModuleInit {
     }
 
     joinDirectChatRoom(userIds: string[], chatId: string) {
-        this.websocketGateway.server.in(userIds.map(id => `user:${id}`)).socketsJoin(`chat-direct:${chatId}`);
+        this.websocketGateway.server
+            .in(userIds.map((id) => `user:${id}`))
+            .socketsJoin(`chat-direct:${chatId}`);
     }
     leaveDirectChatRoom(userIds: string[], chatId: string) {
-        this.websocketGateway.server.in(userIds.map(id => `user:${id}`)).socketsLeave(`chat-direct:${chatId}`);
+        this.websocketGateway.server
+            .in(userIds.map((id) => `user:${id}`))
+            .socketsLeave(`chat-direct:${chatId}`);
     }
     userOnline(userId: string): Date | boolean {
         return this.websocketGateway.sockets.get(userId)?.online || false;
@@ -213,7 +240,7 @@ export class WebsocketService implements OnModuleInit {
     onModuleInit(): any {
         this.usersService = this.moduleRef.get(UsersService, { strict: false });
         this.chatService = this.moduleRef.get(ChatService, { strict: false });
-        this.authService = this.moduleRef.get(AuthService, { strict: false })
+        this.authService = this.moduleRef.get(AuthService, { strict: false });
         this.websocketGateway = this.moduleRef.get(WebsocketGateway);
     }
 }

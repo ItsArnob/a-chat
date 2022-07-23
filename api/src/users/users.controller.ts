@@ -1,12 +1,25 @@
 import { AuthenticatedGuard } from "@/common/guards/authenticated.guard";
 import { UlidValidatorPipe } from "@/common/pipes/ulid-validator.pipe";
-import { AddFriendParamsDto, AddFriendQueryDto, AddFriendResponseDto, RemoveFriendDto } from "@/dto/user.dto";
+import {
+    AddFriendParamsDto,
+    AddFriendQueryDto,
+    AddFriendResponseDto,
+    RemoveFriendDto,
+} from "@/dto/user.dto";
 import { Chat } from "@/models/chat.model";
 import { WebsocketService } from "@/websocket/websocket.service";
-import { Controller, Delete, Param, Put, Query, Req, UseGuards, Get } from "@nestjs/common";
+import {
+    Controller,
+    Delete,
+    Param,
+    Put,
+    Query,
+    Req,
+    UseGuards,
+    Get,
+} from "@nestjs/common";
 import { Request } from "express";
 import { UsersService } from "./users.service";
-
 
 @UseGuards(AuthenticatedGuard)
 @Controller("users")

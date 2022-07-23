@@ -212,7 +212,7 @@ import {
     TabGroup,
     TabList,
     TabPanel,
-    TabPanels
+    TabPanels,
 } from "@headlessui/vue";
 import { useTitle } from "@vueuse/core";
 import { ref } from "vue";

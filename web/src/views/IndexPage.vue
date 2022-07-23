@@ -11,6 +11,5 @@ import { useTitle } from "@vueuse/core";
 import { computed } from "vue";
 
 const userStore = useUserStore();
-useTitle(computed(() => userStore.getUser ? "Home" : "Log In"));
-
+useTitle(computed(() => (userStore.getUser ? "Home" : "Log In")));
 </script>

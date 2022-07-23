@@ -39,7 +39,6 @@ html {
     @apply rounded-lg;
 }
 
-
 @layer utilities {
     .overflow-wrap-anywhere {
         overflow-wrap: anywhere;

@@ -1,5 +1,11 @@
 import { PASSWORD_PATTERN, USERNAME_PATTERN } from "@/constants";
-import { IsNotEmpty, IsOptional, IsString, Length, Matches } from "class-validator";
+import {
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    Length,
+    Matches,
+} from "class-validator";
 
 export class LoginDto {
     @IsString()

@@ -1,10 +1,23 @@
 import { MONGODB_PROVIDER } from "@/constants";
 import { MongoDB } from "@/database/database.interface";
 import { SaveDirectMessageDto } from "@/dto/chat.dto";
-import { Chat, chatProjection, ChatType, Message, MessageDoc, messageProjection } from "@/models/chat.model";
+import {
+    Chat,
+    chatProjection,
+    ChatType,
+    Message,
+    MessageDoc,
+    messageProjection,
+} from "@/models/chat.model";
 import { RelationStatus } from "@/models/user.model";
 import { UsersService } from "@/users/users.service";
-import { ForbiddenException, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import {
+    ForbiddenException,
+    Inject,
+    Injectable,
+    Logger,
+    NotFoundException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Filter } from "mongodb";
 import { decodeTime, monotonicFactory } from "ulid";
@@ -123,7 +136,7 @@ export class ChatService {
         const otherUserId = chat.recipients.find(
             (recipient) => recipient.id !== authorId
         )?.id;
-        // NOTE: maybe dont fetch the entire relations array? instead only return the status from mongo? not sure if this a good optimizations or is needed. 
+        // NOTE: maybe dont fetch the entire relations array? instead only return the status from mongo? not sure if this a good optimizations or is needed.
         const userRelations = await this.usersService.findRelationsOfUser(
             authorId
         );

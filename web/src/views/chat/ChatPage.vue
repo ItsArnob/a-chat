@@ -150,7 +150,14 @@ import { useMessagesStore } from "@/stores/messages";
 import { useUserStore } from "@/stores/user";
 import { ArrowSmDownIcon, RefreshIcon } from "@heroicons/vue/outline";
 import { useTitle } from "@vueuse/core";
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+    computed,
+    nextTick,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    watch,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 const chatsStore = useChatsStore();
@@ -163,7 +170,9 @@ const router = useRouter();
 const { activeStatus } = useActiveStatusRef(
     computed(() => chatsStore.currentlyOpenChat?.online)
 );
-useTitle(computed(() => chatsStore.currentlyOpenChat?.name || "Loading chat..."));
+useTitle(
+    computed(() => chatsStore.currentlyOpenChat?.name || "Loading chat...")
+);
 
 const messagesContainer = ref();
 const messageLoading = ref({ top: false, bottom: false });
@@ -323,14 +332,20 @@ watch(
         if (newLength > oldLength) {
             // new message has been added to the store.
             const distanceFromBottom = Math.abs(
-                messagesContainer.value.scrollHeight - messagesContainer.value.clientHeight - messagesContainer.value.scrollTop
+                messagesContainer.value.scrollHeight -
+                    messagesContainer.value.clientHeight -
+                    messagesContainer.value.scrollTop
             );
             console.log(distanceFromBottom);
-            if (distanceFromBottom < 30) {  // using 30px here just for some headroom
+            if (distanceFromBottom < 30) {
+                // using 30px here just for some headroom
 
-                nextTick(() => messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight);
+                nextTick(
+                    () =>
+                        (messagesContainer.value.scrollTop =
+                            messagesContainer.value.scrollHeight)
+                );
             }
-
         }
 
         // observe the very first message that's rendered, so we can load more message before that when its in view.

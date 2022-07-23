@@ -8,11 +8,7 @@ import { BearerStrategy } from "./bearer.strategy";
 import { LocalStrategy } from "./local.strategy";
 
 @Module({
-    imports: [
-        PassportModule,
-        UsersModule,
-        WebsocketModule
-    ],
+    imports: [PassportModule, UsersModule, WebsocketModule],
     providers: [AuthService, LocalStrategy, BearerStrategy],
     controllers: [AuthController],
 })
