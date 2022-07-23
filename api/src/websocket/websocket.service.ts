@@ -28,7 +28,7 @@ export class WebsocketService implements OnModuleInit {
             token = socket.handshake.auth.token;
         } else {
             const authHeader = socket.handshake.headers.authorization;
-            var parts = authHeader?.split(' ');
+            const parts = authHeader?.split(' ');
             if (parts?.length == 2) {
                 let scheme = parts[0]
                 let credentials = parts[1];
