@@ -38,8 +38,7 @@ export const initSocket = async() => {
             users: data.users,
             user: {
                 id: data.id,
-                username: data.username,
-                isOwner: data.isOwner,
+                username: data.username
             },
         });
         chatsStore.setChats(data.chats);
