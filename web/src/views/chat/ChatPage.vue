@@ -336,7 +336,6 @@ watch(
                     messagesContainer.value.clientHeight -
                     messagesContainer.value.scrollTop
             );
-            console.log(distanceFromBottom);
             if (distanceFromBottom < 30) {
                 // using 30px here just for some headroom
 

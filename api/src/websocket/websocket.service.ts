@@ -199,7 +199,7 @@ export class WebsocketService implements OnModuleInit {
 
     emitNewDirectChatJoin(userIds: string[], chat: Chat) {
         this.joinDirectChatRoom(userIds, chat.id);
-        this.emitUpdateChat(chat.id, chat);
+        this.emitUpdateChat(`chat-direct:${chat.id}`, chat);
     }
 
     emitUpdateChat(emitTo: string, chat: Chat) {

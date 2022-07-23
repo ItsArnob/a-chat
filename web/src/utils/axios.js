@@ -1,5 +1,6 @@
 import { useLogout } from "@/composables/Logout";
 import Axios from "axios";
+import localforage from 'localforage';
 
 const api = Axios.create({
     withCredentials: true,
@@ -24,7 +25,7 @@ api.interceptors.response.use(
         return res;
     },
     async (error) => {
-        if (error.response.status === 401) {
+        if (error.response?.status === 401) {
             console.log(error);
             const { logout } = useLogout();
             await logout(false, true);
@@ -34,9 +35,9 @@ api.interceptors.response.use(
     }
 );
 api.interceptors.request.use(async (config) => {
-    const session = localforage.getItem("session");
+    const session = await localforage.getItem("session");
     if (session) {
-        config.headers.Authorization = `Bearer ${session.token}`;
+        config.headers.Authorization = `Bearer ${session?.token}`;
     }
     return config;
 });
