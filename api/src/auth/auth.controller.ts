@@ -56,8 +56,7 @@ export class AuthController {
     user(@Req() req: Request) {
         return {
             id: req.user.id,
-            username: req.user.username,
-            sessionName: req.user.sessionName,
+            username: req.user.username
         };
     }
 
