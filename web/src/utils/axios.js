@@ -42,4 +42,7 @@ api.interceptors.request.use(async (config) => {
     return config;
 });
 
+if(import.meta.env.DEV) {
+    window.api = api;
+}
 export { api };
