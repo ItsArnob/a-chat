@@ -14,7 +14,8 @@
         "build:server": "yarn workspace api build",
         "start:client": "yarn workspace web preview --host",
         "start:server": "yarn workspace api start:prod",
-        "format": "yarn prettier -w ."
+        "format": "yarn prettier -w .",
+        "heroku-postbuild": "yarn build:server"
     },
     "workspaces": [
         "web",

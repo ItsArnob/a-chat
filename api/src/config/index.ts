@@ -1,5 +1,5 @@
 export function validate(config: Record<string, any>) {
-    const requiredProperties = [];
+    const requiredProperties: string[] = [];
     const errors: string[] = [];
     requiredProperties.forEach((property: string) => {
         if (!config[property] || !config[property].trim()) {
