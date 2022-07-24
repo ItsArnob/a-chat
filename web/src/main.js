@@ -1,4 +1,7 @@
 import "@/assets/tailwind.css";
+import "vue-toastification/dist/index.css";
+import "floating-vue/dist/style.css";
+
 import { defaultConfig, plugin } from "@formkit/vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
@@ -22,12 +25,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import FloatingVue from "floating-vue";
-import "floating-vue/dist/style.css";
 import { createPinia } from "pinia";
 import { createApp } from "vue";
 import Toast from "vue-toastification";
 
-import "vue-toastification/dist/index.css";
 
 import App from "./App.vue";
 import router from "./router";
