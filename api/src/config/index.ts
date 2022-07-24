@@ -1,5 +1,5 @@
 export function validate(config: Record<string, any>) {
-    const requiredProperties = ["SESSION_SECRET"];
+    const requiredProperties = [];
     const errors: string[] = [];
     requiredProperties.forEach((property: string) => {
         if (!config[property] || !config[property].trim()) {
