@@ -61,7 +61,6 @@ export const initSocket = async () => {
             buffer = [];
         }
     });
-    socket.on("Ready", () => {});
 
     socket.on("User:Update", (data) => {
         userStore.updateUser(data.user);
