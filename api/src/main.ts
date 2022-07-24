@@ -23,7 +23,6 @@ async function bootstrap() {
     app.enableCors({
         origin: config.get("corsOrigins") as string[],
         credentials: true,
-        exposedHeaders: ["x-session-id"],
     });
 
     if (config.get("trustProxy")) {
