@@ -1,6 +1,6 @@
 import { useLogout } from "@/composables/Logout";
 import Axios from "axios";
-import localforage from "localforage";
+import localforage from 'localforage';
 
 const api = Axios.create({
     withCredentials: true,
@@ -42,7 +42,7 @@ api.interceptors.request.use(async (config) => {
     return config;
 });
 
-if (import.meta.env.DEV) {
+if(import.meta.env.DEV) {
     window.api = api;
 }
 export { api };

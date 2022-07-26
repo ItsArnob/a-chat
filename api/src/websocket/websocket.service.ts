@@ -113,6 +113,7 @@ export class WebsocketService implements OnModuleInit {
     }
 
     emitFriendAdded(userId: string, receiverUserId: string, chat: Chat) {
+
         this.emitUpdateUser(this.userRoom(userId), {
             id: receiverUserId,
             online: this.userOnline(receiverUserId),
@@ -209,11 +210,7 @@ export class WebsocketService implements OnModuleInit {
         this.websocketGateway.server.to(emitTo).emit("Chat:Update", { chat });
     }
 
-    emitNewMessage(
-        emitTo: string | string[],
-        message: Message,
-        ackId?: string
-    ) {
+    emitNewMessage(emitTo: string | string[], message: Message, ackId?: string) {
         this.websocketGateway.server
             .to(emitTo)
             .emit("Message:New", { ...message, ackId: ackId });
@@ -241,21 +238,19 @@ export class WebsocketService implements OnModuleInit {
     }
 
     logoutSession(sid: string) {
-        this.websocketGateway.server
-            .to(this.userSessRoom(sid))
-            .disconnectSockets();
+        this.websocketGateway.server.to(this.userSessRoom(sid)).disconnectSockets();
     }
 
     userRoom(userId: string) {
-        return `${Rooms.User}:${userId}`;
+        return `${Rooms.User}:${userId}`
     }
 
     directChatRoom(chatId: string) {
-        return `${Rooms.DirectChat}:${chatId}`;
+        return `${Rooms.DirectChat}:${chatId}`
     }
 
     userSessRoom(sessionId: string) {
-        return `${Rooms.UserSessionId}:${sessionId}`;
+        return `${Rooms.UserSessionId}:${sessionId}`
     }
 
     onModuleInit(): any {

@@ -60,11 +60,7 @@ export class ChatController {
             chatId,
             body.content
         );
-        this.websocketService.emitNewMessage(
-            this.websocketService.directChatRoom(chatId),
-            data,
-            body.ackId
-        );
+        this.websocketService.emitNewMessage(this.websocketService.directChatRoom(chatId), data, body.ackId);
         return { ...data, ackId: body.ackId };
     }
 

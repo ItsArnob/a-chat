@@ -211,7 +211,7 @@ export const useMessagesStore = defineStore({
             await this.saveMessage(chatId, newId, message.content);
         },
         keepLastNMessages(chatId, messagesCount) {
-            if (!this.messagesByChat[chatId]?.messages) return;
+            if(!this.messagesByChat[chatId]?.messages) return;
             if (messagesCount >= this.messagesByChat[chatId].messages.length)
                 return;
             const chatsStore = useChatsStore();
