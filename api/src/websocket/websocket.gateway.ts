@@ -56,7 +56,9 @@ export class WebsocketGateway
             client.join([
                 this.websocketService.userRoom(data.id),
                 this.websocketService.userSessRoom(sessionId),
-                ...friendsChats.map((chat) => this.websocketService.directChatRoom(chat.id)),
+                ...friendsChats.map((chat) =>
+                    this.websocketService.directChatRoom(chat.id)
+                ),
             ]);
             client.user = { id: data.id };
             client.emit("Ready", data);

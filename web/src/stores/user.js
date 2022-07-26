@@ -39,15 +39,17 @@ export const useUserStore = defineStore({
     },
     actions: {
         async login(username, password) {
-
             let sessionFriendlyName;
-            if(platform.name) sessionFriendlyName = platform.name;
-            if(platform.os.family) sessionFriendlyName +=  ` on ${platform.os.family} ${platform.os.version ?? ""}`;
+            if (platform.name) sessionFriendlyName = platform.name;
+            if (platform.os.family)
+                sessionFriendlyName += ` on ${platform.os.family} ${
+                    platform.os.version ?? ""
+                }`;
             return axios
                 .post(`${import.meta.env.VITE_API_URL}/auth/login`, {
                     username,
                     password,
-                    friendlyName: sessionFriendlyName?.trim()
+                    friendlyName: sessionFriendlyName?.trim(),
                 })
                 .then(async (res) => {
                     await localforage.setItem("session", res.data.session);
