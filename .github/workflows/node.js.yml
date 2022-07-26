@@ -1,21 +1,13 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Node.js CI
+name: Build and test the api
 
 on:
   push:
     branches: [ "main" ]
-    paths:
-      - api/**
-      - package.json
-      - yarn.lock
   pull_request:
     branches: [ "main" ]
-    paths:
-      - api/**
-      - package.json
-      - yarn.lock
   workflow_dispatch:
 
 jobs:
