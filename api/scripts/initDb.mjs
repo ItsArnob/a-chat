@@ -29,6 +29,10 @@ await usersColl.createIndex(
     }
 );
 
+// NOTE: should i create a index on userId? probably no.
+// it would help with fetching sessions by userId but
+// it would be too infrequent to consider indexing i think.
+
 await sessionsColl.createIndex({ token: 1 }, { unique: true });
 await sessionsColl.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 await chatsColl.createIndex({ "recipients.id": 1, chatType: 1 });
