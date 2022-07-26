@@ -591,7 +591,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fortawesome/fontawesome-svg-core@npm:^6.1.1":
+"@fortawesome/fontawesome-svg-core@npm:6.1.1":
   version: 6.1.1
   resolution: "@fortawesome/fontawesome-svg-core@npm:6.1.1"
   dependencies:
@@ -600,7 +600,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fortawesome/free-regular-svg-icons@npm:^6.1.1":
+"@fortawesome/free-regular-svg-icons@npm:6.1.1":
   version: 6.1.1
   resolution: "@fortawesome/free-regular-svg-icons@npm:6.1.1"
   dependencies:
@@ -609,7 +609,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fortawesome/free-solid-svg-icons@npm:^6.1.1":
+"@fortawesome/free-solid-svg-icons@npm:6.1.1":
   version: 6.1.1
   resolution: "@fortawesome/free-solid-svg-icons@npm:6.1.1"
   dependencies:
@@ -618,7 +618,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fortawesome/vue-fontawesome@npm:^3.0.0":
+"@fortawesome/vue-fontawesome@npm:3.0.1":
   version: 3.0.1
   resolution: "@fortawesome/vue-fontawesome@npm:3.0.1"
   peerDependencies:
@@ -8602,10 +8602,10 @@ __metadata:
   dependencies:
     "@formkit/themes": ^1.0.0-beta.8
     "@formkit/vue": ^1.0.0-beta.8
-    "@fortawesome/fontawesome-svg-core": ^6.1.1
-    "@fortawesome/free-regular-svg-icons": ^6.1.1
-    "@fortawesome/free-solid-svg-icons": ^6.1.1
-    "@fortawesome/vue-fontawesome": ^3.0.0
+    "@fortawesome/fontawesome-svg-core": 6.1.1
+    "@fortawesome/free-regular-svg-icons": 6.1.1
+    "@fortawesome/free-solid-svg-icons": 6.1.1
+    "@fortawesome/vue-fontawesome": 3.0.1
     "@headlessui/vue": ^1.6.4
     "@heroicons/vue": ^1.0.6
     "@vitejs/plugin-vue": ^2.3.1
