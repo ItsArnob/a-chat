@@ -2388,7 +2388,7 @@ __metadata:
     jest: 27.5.1
     lodash: ^4.17.21
     mongodb: 4.8.0
-    nanoid: ^3.3.2
+    nanoid: ^4.0.0
     nestjs-pino: ^2.6.0
     passport: ^0.6.0
     passport-http-bearer: ^1.0.1
@@ -6200,7 +6200,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^3.3.2, nanoid@npm:^3.3.4":
+"nanoid@npm:^3.3.4":
   version: 3.3.4
   resolution: "nanoid@npm:3.3.4"
   bin:
