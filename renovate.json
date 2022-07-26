@@ -9,6 +9,10 @@
         "*"
       ],
       "rangeStrategy": "replace"
+    },
+    {
+      "matchPackagePatterns": ["vite"],
+      "groupName": "vite"
     }
   ]
 }
