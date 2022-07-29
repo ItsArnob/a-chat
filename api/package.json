@@ -73,6 +73,9 @@
             "json",
             "ts"
         ],
+        "coveragePathIgnorePatterns": [
+            ".module.ts"
+        ],
         "moduleNameMapper": {
             "@/(.*)": "<rootDir>/$1"
         },

@@ -37,7 +37,7 @@ export class AuthController {
     @Post("login")
     @HttpCode(200)
     @UseGuards(LoginGuard)
-    async login(@Req() req: Request, @Body() body: LoginDto) {
+    async login(@Req() req: Request) {
         const session = await this.authService.createSession(
             req.user.id,
             req.user.sessionName
