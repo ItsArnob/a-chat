@@ -132,6 +132,7 @@ export class UsersService {
             const online = sockets.get(id)?.online;
             return {
                 id,
+                // TODO: return undefined instead of false, check client side code to make sure. 
                 online: relationship === RelationStatus.Friend ? online : false, // return online status only if users are friends else false.
                 username,
                 relationship,
@@ -144,7 +145,10 @@ export class UsersService {
             { _id: userId },
             { projection: { profile: { relations: 1 } } }
         );
-        return user?.profile?.relations?.map((user) => user.id) || [];
+        if(!user?.profile?.relations || user.profile.relations.length === 0) return []
+        return user.profile.relations
+            .filter(user => user.status === RelationStatus.Friend)
+            .map((user) => user.id);
     }
 
     async addFriend(
