@@ -29,26 +29,6 @@ export class ChatController {
         private websocketService: WebsocketService
     ) {}
 
-    /* @Post('/:id') // TODO: change this in the client
-    async createChat(
-        @Req() req: Request,
-        @Query("type") type: string,
-        @Param('id', new ObjectIdValidationPipe()) userId: ObjectId
-    ): Promise<Chat> {
-        if(type?.toLowerCase() !== "user") throw new NotImplementedException("Only user ids are supported.");
-        const result = await this.chatService.getDirectMessageChat(
-            req.user._id,
-            userId
-        ); // this will un-hide the chat if it's hidden in the future, that's why it emits a ws event.
-        this.chatGateway.server
-            .to(req.user._id.toString())
-            .to(userId.toString()) // TODO: IDEA: in the future if/when we have a chat that can be hidden, we need to notify the other user only if the chat is created
-            .emit('Chat:Update', result);
-        return result;
-    }
-
-*/
-
     @Post("/:chatId/messages")
     async saveDirectMessage(
         @Req() req: Request,
@@ -60,7 +40,11 @@ export class ChatController {
             chatId,
             body.content
         );
-        this.websocketService.emitNewMessage(this.websocketService.directChatRoom(chatId), data, body.ackId);
+        this.websocketService.emitNewMessage(
+            this.websocketService.directChatRoom(chatId),
+            data,
+            body.ackId
+        );
         return { ...data, ackId: body.ackId };
     }
 

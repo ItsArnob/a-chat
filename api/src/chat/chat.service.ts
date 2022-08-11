@@ -3,6 +3,7 @@ import { MongoDB } from "@/database/database.interface";
 import { SaveDirectMessageDto } from "@/dto/chat.dto";
 import {
     Chat,
+    ChatDoc,
     chatProjection,
     ChatType,
     Message,
@@ -15,10 +16,10 @@ import {
     ForbiddenException,
     Inject,
     Injectable,
+    InternalServerErrorException,
     Logger,
     NotFoundException,
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Filter } from "mongodb";
 import { decodeTime, monotonicFactory } from "ulid";
 
@@ -29,62 +30,9 @@ export class ChatService {
 
     constructor(
         private usersService: UsersService,
-        private configService: ConfigService,
         @Inject(MONGODB_PROVIDER)
         private mongo: MongoDB
     ) {}
-
-    /* async getDirectMessageChat(
-        user1Id: ObjectId,
-        user2Id: ObjectId
-    ): Promise<Chat> {
-        if (user1Id.toString() === user2Id.toString())
-            throw new BadRequestException("You can't chat with yourself.");
-
-        // check if user1 and user2 are friends
-        const account2 = await this.usersService.findOneById(user2Id);
-        const user2IsFriend = account2.profile?.relations?.find(
-            (relation) =>
-                relation.id.toString() === user1Id.toString() &&
-                relation.status === RelationStatus.Friend
-        );
-        if (!user2IsFriend)
-            throw new ForbiddenException(
-                'You have to be friends with this user before you can send messages.'
-            );
-
-        const existingChat = await this.prisma.chat.findFirst({
-            where: {
-                chatType: ChatType.Direct,
-                recipients: {
-                    every: {
-                        userId: {
-                            in: [user1Id.toString(), account2._id.toString()],
-                        },
-                    },
-                },
-            },
-        });
-        if (!existingChat)
-            throw new NotFoundException(
-                'Chat not found for this user... which is weird, eh?'
-            );
-        return existingChat;
-        /*if (existingChat) return existingChat;
-        return this.prisma.chat.create({
-            data: {
-                chatType: ChatType.Direct,
-                recipients: [
-                    {
-                        userId: initiatorUserId,
-                    },
-                    {
-                        userId: account2.id,
-                    },
-                ],
-            },
-        });
-    };*/
 
     async getChatsOfUser(userId: string): Promise<Chat[]> {
         const results = await this.mongo.chats
@@ -108,9 +56,15 @@ export class ChatService {
         const oldTime = Date.now();
         const errorMessage =
             "You don't have permission to send messages in this chat.";
-        const chat = await this.mongo.chats.findOne({
-            _id: chatId,
-        });
+        const chat = await this.mongo.chats.findOne<
+            Pick<ChatDoc, "chatType" | "recipients">
+        >(
+            {
+                _id: chatId,
+            },
+            { projection: { chatType: 1, _id: 0, recipients: 1 } }
+        );
+
         if (!chat) {
             this.logger.warn({
                 event: `message_direct_create_fail:${chatId},chat_not_exist`,
@@ -136,6 +90,14 @@ export class ChatService {
         const otherUserId = chat.recipients.find(
             (recipient) => recipient.id !== authorId
         )?.id;
+        if (!otherUserId) {
+            this.logger.error({
+                event: `message_direct_create_fail:${chatId},no_other_user`,
+                msg: "No other user found in chat, only the authors id exists.",
+            });
+
+            throw new InternalServerErrorException();
+        }
         // NOTE: maybe dont fetch the entire relations array? instead only return the status from mongo? not sure if this a good optimizations or is needed.
         const userRelations = await this.usersService.findRelationsOfUser(
             authorId
@@ -197,9 +159,19 @@ export class ChatService {
     ): Promise<Message[]> {
         const oldTime = Date.now();
 
-        const chat = await this.mongo.chats.findOne({
-            _id: chatId,
-        });
+        const chat = await this.mongo.chats.findOne<
+            Pick<ChatDoc, "recipients">
+        >(
+            {
+                _id: chatId,
+            },
+            {
+                projection: {
+                    _id: 0,
+                    recipients: 1,
+                },
+            }
+        );
         if (!chat) {
             this.logger.warn({
                 event: `message_get_many_fail:${chatId},chat_not_exist`,
