@@ -492,6 +492,7 @@ describe("ChatService", () => {
             // @ts-ignore
             jest.spyOn(mongo.chats, "findOne").mockResolvedValue({
                 ...chat,
+                // @ts-ignore
                 recipients: [chat.recipients[0]],
             });
             await expect(
