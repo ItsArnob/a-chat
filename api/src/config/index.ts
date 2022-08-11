@@ -10,9 +10,9 @@ export function validate(config: Record<string, any>) {
     if (config.NODE_ENV !== "production") {
         config.CORS_ALLOWED_DOMAINS
             ? (config.CORS_ALLOWED_DOMAINS +=
-                  " http://localhost:3000 https://hoppscotch.io")
+                  " http://localhost:5173 https://hoppscotch.io")
             : (config.CORS_ALLOWED_DOMAINS =
-                  "http://localhost:3000 https://hoppscotch.io http://192.168.0.107:3000");
+                  "http://localhost:5173 https://hoppscotch.io");
     }
 
     if (errors.length) {

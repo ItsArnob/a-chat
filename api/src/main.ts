@@ -1,4 +1,4 @@
-import { CustomIoAdapter } from "@/adapters/socketio";
+import { CustomIoAdapter } from "@/adapters/socketio-admin";
 import { AppModule } from "@/app.module";
 import {
     BadRequestException,
