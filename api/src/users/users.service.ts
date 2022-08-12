@@ -132,7 +132,7 @@ export class UsersService {
             const online = sockets.get(id)?.online;
             return {
                 id,
-                // TODO: return undefined instead of false, check client side code to make sure. 
+                // TODO: return undefined instead of false, check client side code to make sure.
                 online: relationship === RelationStatus.Friend ? online : false, // return online status only if users are friends else false.
                 username,
                 relationship,
@@ -145,9 +145,10 @@ export class UsersService {
             { _id: userId },
             { projection: { profile: { relations: 1 } } }
         );
-        if(!user?.profile?.relations || user.profile.relations.length === 0) return []
+        if (!user?.profile?.relations || user.profile.relations.length === 0)
+            return [];
         return user.profile.relations
-            .filter(user => user.status === RelationStatus.Friend)
+            .filter((user) => user.status === RelationStatus.Friend)
             .map((user) => user.id);
     }
 
@@ -267,6 +268,7 @@ export class UsersService {
             }
         }
 
+        // sends a friend request
         const session = this.mongo.client.startSession();
 
         await session.withTransaction(async () => {
@@ -306,13 +308,13 @@ export class UsersService {
         };
     }
     async removeFriend(
-        userId: string,
+        otherUserId: string,
         user: UserNoProfile
     ): Promise<RemoveFriendDto> {
         const userProfile = await this.findOneById(user.id);
         if (!userProfile) throw new NotFoundException("User not found.");
         const relationship = userProfile.profile?.relations?.find(
-            (relation) => relation.id === userId
+            (relation) => relation.id === otherUserId
         );
         if (!relationship) throw new NotFoundException("User not found.");
         let message: string;
@@ -320,51 +322,55 @@ export class UsersService {
         const removeFriendTransaction = async (wasFriend?: boolean) => {
             let chatId: string | undefined;
             const session = this.mongo.client.startSession();
-            await session.withTransaction(async () => {
-                await this.mongo.users.updateOne(
-                    {
-                        _id: userProfile.id,
-                    },
-                    {
-                        $pull: {
-                            "profile.relations": {
-                                id: userId,
-                            },
-                        },
-                    },
-                    { session }
-                );
-                await this.mongo.users.updateOne(
-                    {
-                        _id: userId,
-                    },
-                    {
-                        $pull: {
-                            "profile.relations": {
-                                id: userProfile.id,
-                            },
-                        },
-                    },
-                    { session }
-                );
-                if (wasFriend) {
-                    const chat = await this.mongo.chats.findOne<{
-                        _id: string;
-                    }>(
+            try {
+                await session.withTransaction(async () => {
+                    await this.mongo.users.updateOne(
                         {
-                            chatType: ChatType.Direct,
-                            "recipients.id": {
-                                $all: [userId, userProfile.id],
+                            _id: userProfile.id,
+                        },
+                        {
+                            $pull: {
+                                "profile.relations": {
+                                    id: otherUserId,
+                                },
                             },
                         },
-                        { projection: { _id: 1 } }
+                        { session }
                     );
-                    if (chat) chatId = chat._id;
-                }
-            });
+                    await this.mongo.users.updateOne(
+                        {
+                            _id: otherUserId,
+                        },
+                        {
+                            $pull: {
+                                "profile.relations": {
+                                    id: userProfile.id,
+                                },
+                            },
+                        },
+                        { session }
+                    );
+                    if (wasFriend) {
+                        const chat = await this.mongo.chats.findOne<{
+                            _id: string;
+                        }>(
+                            {
+                                chatType: ChatType.Direct,
+                                "recipients.id": {
+                                    $all: [otherUserId, userProfile.id],
+                                },
+                            },
+                            { projection: { _id: 1 } }
+                        );
+                        if (chat) chatId = chat._id;
+                    }
+                });
+            } finally {
+                await session.endSession();
+            }
             return {
                 user: {
-                    id: userId,
+                    id: otherUserId,
                 },
                 chatId,
                 message,
@@ -386,8 +392,8 @@ export class UsersService {
                 return await removeFriendTransaction();
             default:
                 this.logger.error({
-                    event: `user_friend_remove_failed:${userId},${user.id},invalid_relation_status`,
-                    msg: `Invalid relation status found in ${userId} user document.`,
+                    event: `user_friend_remove_failed:${otherUserId},${user.id},invalid_relation_status`,
+                    msg: `Invalid relation status found in ${otherUserId} user document.`,
                 });
                 throw new InternalServerErrorException();
         }
