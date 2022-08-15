@@ -417,9 +417,9 @@ describe("UsersService", () => {
         const userId = "userId";
         it("should return the ids of friends of a user id", async () => {
             const result = ["friendId1", "friendId2"];
+            
             jest.spyOn(mongo.users, "findOne").mockResolvedValue({
                 profile: {
-                    // @ts-ignore
                     relations: [
                         { id: "friendId1", status: RelationStatus.Friend },
                         { id: "friendId2", status: RelationStatus.Friend },
@@ -429,7 +429,7 @@ describe("UsersService", () => {
                         },
                     ],
                 },
-            });
+            } as never); // FIXME: this is bad idk how to deal with this
             await expect(
                 usersService.getFriendIds(userId)
             ).resolves.toStrictEqual(result);
@@ -440,10 +440,10 @@ describe("UsersService", () => {
             expect(mongo.users.findOne).toBeCalledTimes(1);
         });
         it("should return empty ids array if no profile is found", async () => {
-            //@ts-ignore
+            
             jest.spyOn(mongo.users, "findOne").mockResolvedValue({
                 username: "just a user object nothing to see here",
-            });
+            } as never);
             await expect(
                 usersService.getFriendIds("userId")
             ).resolves.toStrictEqual([]);
@@ -455,10 +455,10 @@ describe("UsersService", () => {
         });
 
         it("should return empty ids array if no relations are found", async () => {
-            //@ts-ignore
+
             jest.spyOn(mongo.users, "findOne").mockResolvedValue({
                 profile: { relations: [] },
-            });
+            } as never);
             await expect(
                 usersService.getFriendIds("userId")
             ).resolves.toStrictEqual([]);
@@ -537,10 +537,9 @@ describe("UsersService", () => {
                 },
             };
             jest.spyOn(usersService, "findOneById").mockResolvedValue(user);
-            //@ts-ignore
             jest.spyOn(mongo.chats, "findOne").mockResolvedValue({
                 _id: chatId,
-            });
+            } as never);
             await expect(
                 usersService.removeFriend(otherUserId, userNoProfile)
             ).resolves.toStrictEqual({
