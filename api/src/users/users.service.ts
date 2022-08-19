@@ -126,6 +126,7 @@ export class UsersService {
             .toArray();
 
         return users.map(({ _id: id, username }) => {
+            /* istanbul ignore next */
             const relationship = relations.find(
                 (relation) => relation.id === id
             )?.status;
@@ -178,9 +179,9 @@ export class UsersService {
                     throw new ConflictException(
                         "You already sent a friend request to this user."
                     );
-                case RelationStatus.Blocked:
-                    throw new ConflictException("You blocked this user.");
                 case RelationStatus.BlockedByOther:
+                    throw new ConflictException("You blocked this user.");
+                case RelationStatus.Blocked:
                     throw new ConflictException("This user blocked you.");
                 case RelationStatus.Outgoing: // accepts the friend request
                     const session = this.mongo.client.startSession();
@@ -235,10 +236,10 @@ export class UsersService {
                                 chatType: ChatType.Direct,
                                 recipients: [
                                     {
-                                        id: sender.id,
+                                        id: receiverUser.id,
                                     },
                                     {
-                                        id: receiverUser.id,
+                                        id: sender.id,
                                     },
                                 ],
                             };
@@ -283,6 +284,9 @@ export class UsersService {
                             status: RelationStatus.Incoming,
                         },
                     },
+                },
+                { 
+                    session
                 }
             );
             await this.mongo.users.updateOne(
@@ -296,8 +300,13 @@ export class UsersService {
                             status: RelationStatus.Outgoing,
                         },
                     },
+                },
+                {
+                    session
                 }
             );
+        }).finally(() => {
+            session.endSession();
         });
         return {
             user: {
