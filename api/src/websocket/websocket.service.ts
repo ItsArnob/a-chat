@@ -7,6 +7,7 @@ import { WebsocketGateway } from "@/websocket/websocket.gateway";
 import {
     Inject,
     Injectable,
+    InternalServerErrorException,
     Logger,
     OnModuleInit,
     UnauthorizedException,
@@ -104,7 +105,7 @@ export class WebsocketService implements OnModuleInit {
             sessionId,
         };
     }
-    async getFriendIdsFromSocket(client: Socket) {
+    getFriendIdsFromSocket(client: Socket) {
         return this.usersService.getFriendIds(client.user.id);
     }
 
@@ -190,18 +191,23 @@ export class WebsocketService implements OnModuleInit {
         data: { [key: string]: any },
         message?: string
     ) {
+        if(!emitTo || emitTo.length == 0) {
+            this.logger.error({ event: 'ws_invalid_room,empty', msg: `emitUpdateUser received empty room string/array. This is likely unintentional as it will send the event to every socket.` })
+            throw new InternalServerErrorException()
+            
+        }
         this.websocketGateway.server.to(emitTo).emit("User:Update", {
             user: data,
             message: message,
         });
     }
 
-    emitNewDirectChatJoin(userIds: string[], chat: Chat) {
-        this.joinDirectChatRoom(userIds, chat.id);
-        this.emitUpdateChat(this.directChatRoom(chat.id), chat);
-    }
-
     emitUpdateChat(emitTo: string | string[], chat: Chat) {
+        if (!emitTo || emitTo.length == 0) {
+            this.logger.error({ event: 'ws_invalid_room,empty', msg: `emitUpdateChat received empty room string/array. This is likely unintentional as it will send the event to every socket.` })
+            throw new InternalServerErrorException()
+
+        }
         this.websocketGateway.server.to(emitTo).emit("Chat:Update", { chat });
     }
 
@@ -210,6 +216,12 @@ export class WebsocketService implements OnModuleInit {
         message: Message,
         ackId?: string
     ) {
+        if (!emitTo || emitTo.length == 0) {
+            this.logger.error({ event: 'ws_invalid_room,empty', msg: `emitNewMessage received empty room string/array. This is likely unintentional as it will send the event to every socket.` })
+            throw new InternalServerErrorException()
+
+        }
+
         this.websocketGateway.server
             .to(emitTo)
             .emit("Message:New", { ...message, ackId: ackId });
@@ -220,6 +232,11 @@ export class WebsocketService implements OnModuleInit {
             type,
             message,
         });
+    }
+
+    emitNewDirectChatJoin(userIds: string[], chat: Chat) {
+        this.joinDirectChatRoom(userIds, chat.id);
+        this.emitUpdateChat(this.directChatRoom(chat.id), chat);
     }
 
     joinDirectChatRoom(userIds: string[], chatId: string) {
@@ -237,6 +254,10 @@ export class WebsocketService implements OnModuleInit {
     }
 
     logoutSession(sid: string) {
+        if (!sid || !sid.trim().length) {
+            this.logger.error({ event: 'ws_invalid_room,empty', msg: `logoutSession received empty room string. This is absolutely unintentional.` })
+            throw new InternalServerErrorException()
+        }
         this.websocketGateway.server
             .to(this.userSessRoom(sid))
             .disconnectSockets();
