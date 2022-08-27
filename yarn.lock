@@ -655,12 +655,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@heroicons/vue@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "@heroicons/vue@npm:1.0.6"
+"@heroicons/vue@npm:^2.0.0":
+  version: 2.0.8
+  resolution: "@heroicons/vue@npm:2.0.8"
   peerDependencies:
     vue: ">= 3"
-  checksum: 63cf6ad94e271e5f8c47a2ee27e14d16aac8989f8450048853fea89bff545dae42db8ba3cb28dd08cef752fe32c88a418e976aae9ecd5a698973d56f5e87cb3c
+  checksum: 0e19ecc387f400c3567d53466749cbb08b4157dff1b5cdce201437e7d38ca172cc243e3abd50ca60476a6ad215b2742ec90bcde935eefe67ec38f451f73898bd
   languageName: node
   linkType: hard
 
@@ -8359,7 +8359,7 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": ^6.1.1
     "@fortawesome/vue-fontawesome": ^3.0.0
     "@headlessui/vue": ^1.6.4
-    "@heroicons/vue": ^1.0.6
+    "@heroicons/vue": ^2.0.0
     "@vitejs/plugin-vue": ^3.0.0
     "@vueuse/core": ^9.0.0
     autoprefixer: ^10.4.7
