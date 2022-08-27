@@ -45,7 +45,7 @@ export class WebsocketService implements OnModuleInit {
                     this.logger.debug("token found in authorization header.");
                 } else {
                     throw new UnauthorizedException(
-                        "token not provided to authenticate with."
+                        "Invalid authorization header scheme"
                     );
                 }
             } else {
@@ -53,7 +53,7 @@ export class WebsocketService implements OnModuleInit {
                     "token not found in auth object/authorization header."
                 );
                 throw new UnauthorizedException(
-                    "token not provided to authenticate with."
+                    "Invalid authorization header scheme"
                 );
             }
         }
@@ -78,11 +78,7 @@ export class WebsocketService implements OnModuleInit {
             if (chat.lastMessageId) lastMessageIds.push(chat.lastMessageId);
             chat.recipients.forEach((recipient) => {
                 if (recipient.id === user.id) return;
-
-                const isRecipientInRelatedUsers = relatedUserIds.find(
-                    (relatedUser) => relatedUser === recipient.id
-                );
-                if (isRecipientInRelatedUsers) return;
+                if (relatedUserIds.includes(recipient.id)) return;
 
                 relatedUserIds.push(recipient.id);
             });
