@@ -338,7 +338,7 @@ describe("WebsocketService", () => {
             jest.spyOn(chatService, "getMessagesById").mockResolvedValue(lastMessages)
             jest.spyOn(websocketService, "getUserFromSocket").mockResolvedValue(account)
             jest.spyOn(usersService, "findRelatedUsersWithStatus").mockResolvedValue(relatedUsers)
-            console.log(account)
+            
             await expect(websocketService.authenticateUserFromSocket(socket as any, onlineSockets)).resolves.toStrictEqual({
                 id: account.user.id,
                 username: account.user.username,
@@ -360,7 +360,7 @@ describe("WebsocketService", () => {
             jest.spyOn(chatService, "getMessagesById").mockResolvedValue(undefined as any)
             jest.spyOn(websocketService, "getUserFromSocket").mockResolvedValue(account)
             jest.spyOn(usersService, "findRelatedUsersWithStatus").mockResolvedValue(undefined as any)
-            console.log(account)
+
             await expect(websocketService.authenticateUserFromSocket(socket as any, onlineSockets)).resolves.toStrictEqual({
                 id: account.user.id,
                 username: account.user.username,
