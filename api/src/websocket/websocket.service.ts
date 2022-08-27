@@ -93,9 +93,9 @@ export class WebsocketService implements OnModuleInit {
               )
             : [];
 
-        const lastMessages = await this.chatService.getMessagesById(
-            lastMessageIds
-        );
+        const lastMessages = lastMessageIds.length 
+            ? await this.chatService.getMessagesById(lastMessageIds)
+            : []
         return {
             id: user.id,
             username: user.username,
@@ -105,8 +105,8 @@ export class WebsocketService implements OnModuleInit {
             sessionId,
         };
     }
-    getFriendIdsFromSocket(client: Socket) {
-        return this.usersService.getFriendIds(client.user.id);
+    async getFriendIdsFromSocket(client: Socket) {
+        return await this.usersService.getFriendIds(client.user.id);
     }
 
     emitFriendAdded(userId: string, receiverUserId: string, chat: Chat) {
