@@ -1,11 +1,13 @@
 import { AuthService } from "@/auth/auth.service";
 import { ChatService } from "@/chat/chat.service";
+import pinoLoggerMock from "@/mocks/pino-logger.mock";
 import { Chat, ChatType, Message } from "@/models/chat.model";
 import { RelationStatus } from "@/models/user.model";
 import { UsersService } from "@/users/users.service";
 import { InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { ModuleMocker, MockFunctionMetadata } from "jest-mock";
+import { getLoggerToken } from "nestjs-pino";
 import { WebsocketGateway } from "./websocket.gateway";
 import { Rooms } from "./websocket.interface";
 import { WebsocketModule } from "./websocket.module";
@@ -63,6 +65,10 @@ describe("WebsocketService", () => {
                             get: jest.fn()
                         }
                     }
+                },
+                {
+                    provide: getLoggerToken(WebsocketService.name),
+                    useValue: pinoLoggerMock
                 }
             ],
         })

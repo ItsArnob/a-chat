@@ -17,21 +17,22 @@ import {
     Inject,
     Injectable,
     InternalServerErrorException,
-    Logger,
     NotFoundException,
 } from "@nestjs/common";
 import { Filter } from "mongodb";
+import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 import { decodeTime, monotonicFactory } from "ulid";
 
 @Injectable()
 export class ChatService {
-    private logger = new Logger(ChatService.name);
     private ulid = monotonicFactory();
 
     constructor(
         private usersService: UsersService,
         @Inject(MONGODB_PROVIDER)
-        private mongo: MongoDB
+        private mongo: MongoDB,
+        @InjectPinoLogger(ChatService.name)
+        private logger: PinoLogger
     ) {}
 
     async getChatsOfUser(userId: string): Promise<Chat[]> {

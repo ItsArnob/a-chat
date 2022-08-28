@@ -6,11 +6,15 @@ import {
     Logger,
 } from "@nestjs/common";
 import { WsException } from "@nestjs/websockets";
+import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 
 @Catch()
 export class WsExceptionFilter implements ExceptionFilter {
-    private readonly logger = new Logger(WsExceptionFilter.name);
-
+    constructor(
+        @InjectPinoLogger(WsExceptionFilter.name)
+        private logger: PinoLogger
+    ) {}
+    
     catch(exception: any, host: ArgumentsHost) {
         const ctx = host.switchToWs();
         const ws = ctx.getClient();

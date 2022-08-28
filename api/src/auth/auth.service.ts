@@ -14,16 +14,17 @@ import bcrypt from "bcrypt";
 import { nanoid } from "nanoid/async";
 import { ConfigService } from "@nestjs/config";
 import { SessionDoc, sessionProjection } from "@/models/session.model";
+import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 
 @Injectable()
 export class AuthService {
-    private logger = new Logger(AuthService.name);
-
     constructor(
         private userService: UsersService,
         @Inject(MONGODB_PROVIDER)
         private mongo: MongoDB,
-        private config: ConfigService
+        private config: ConfigService,
+        @InjectPinoLogger(AuthService.name)
+        private logger: PinoLogger
     ) {}
 
     async validateUser(

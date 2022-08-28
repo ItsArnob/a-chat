@@ -12,6 +12,8 @@ import { MongoDB } from "@/database/database.interface";
 import nanoid from "nanoid/async";
 import * as ulid from "ulid";
 import { ConfigService } from "@nestjs/config";
+import { getLoggerToken } from "nestjs-pino";
+import pinoLoggerMock from "@/mocks/pino-logger.mock";
 
 const moduleMocker = new ModuleMocker(global);
 
@@ -52,7 +54,10 @@ describe("AuthService", () => {
 
     beforeEach(async () => {
         const moduleRef = await Test.createTestingModule({
-            providers: [AuthService],
+            providers: [AuthService, {
+                provide: getLoggerToken(AuthService.name),
+                useValue: pinoLoggerMock
+            }],
         })
             .useMocker((token) => {
                 if (token === MONGODB_PROVIDER) {

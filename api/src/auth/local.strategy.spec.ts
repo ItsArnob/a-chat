@@ -7,16 +7,21 @@ import {
     InternalServerErrorException,
     UnauthorizedException,
 } from "@nestjs/common";
+import { getLoggerToken } from "nestjs-pino";
+import pinoLoggerMock from "@/mocks/pino-logger.mock";
 
 const moduleMocker = new ModuleMocker(global);
 
-describe("Passport Bearer Strategy", () => {
+describe("LOcalStrategy", () => {
     let authService: AuthService;
     let localStrategy: LocalStrategy;
 
     beforeEach(async () => {
         const moduleRef = await Test.createTestingModule({
-            providers: [LocalStrategy],
+            providers: [LocalStrategy, {
+                provide: getLoggerToken(LocalStrategy.name),
+                useValue: pinoLoggerMock
+            }],
         })
             .useMocker((token) => {
                 if (typeof token === "function") {

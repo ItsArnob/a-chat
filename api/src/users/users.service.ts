@@ -28,16 +28,18 @@ import {
 import { ConfigService } from "@nestjs/config";
 import bcrypt from "bcrypt";
 import { UpdateFilter } from "mongodb";
+import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 import { ulid } from "ulid";
 
 @Injectable()
 export class UsersService {
-    private logger = new Logger(UsersService.name);
 
     constructor(
         @Inject(MONGODB_PROVIDER)
         private mongo: MongoDB,
-        private configService: ConfigService
+        private configService: ConfigService,
+        @InjectPinoLogger(UsersService.name)
+        private logger: PinoLogger
     ) {}
     async findOneByName(username: string): Promise<User | null> {
         const result = await this.mongo.users.findOne(
@@ -440,7 +442,7 @@ export class UsersService {
             username,
             passwordHash,
         });
-        this.logger.log({
+        this.logger.info({
             event: `user_created:${id}`,
             msg: `A new user account was created with the username ${username}.`,
         });

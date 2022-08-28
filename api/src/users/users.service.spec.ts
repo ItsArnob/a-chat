@@ -27,6 +27,8 @@ import { AddFriendDto } from "@/dto/user.dto";
 import * as ulid from "ulid";
 import bcrypt from "bcrypt"
 import { ConfigService } from "@nestjs/config";
+import { getLoggerToken } from "nestjs-pino";
+import pinoLoggerMock from "@/mocks/pino-logger.mock";
 
 const moduleMocker = new ModuleMocker(global);
 jest.mock("ulid")
@@ -48,7 +50,10 @@ describe("UsersService", () => {
         mockEndSession = jest.fn();
 
         const moduleRef = await Test.createTestingModule({
-            providers: [UsersService],
+            providers: [UsersService, {
+                provide: getLoggerToken(UsersService.name),
+                useValue: pinoLoggerMock
+            }],
         })
             .useMocker((token) => {
                 if (token === MONGODB_PROVIDER) {

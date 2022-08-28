@@ -16,6 +16,7 @@ import {
     WebSocketGateway,
     WebSocketServer,
 } from "@nestjs/websockets";
+import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 import { Server, Socket } from "socket.io";
 
 @WebSocketGateway({ cors: { origin: true, credentials: true } })
@@ -23,11 +24,14 @@ import { Server, Socket } from "socket.io";
 export class WebsocketGateway
     implements OnGatewayConnection, OnGatewayDisconnect
 {
-    constructor(private websocketService: WebsocketService) {}
+    constructor(
+        private websocketService: WebsocketService,
+        @InjectPinoLogger(WebsocketGateway.name)
+        private logger: PinoLogger    
+    ) {}
     @WebSocketServer()
     server: Server;
 
-    private logger = new Logger(WebsocketGateway.name);
     public sockets: OnlineSocketsList = new Map();
 
     async handleConnection(client: Socket) {
@@ -87,7 +91,7 @@ export class WebsocketGateway
                 });
             }
 
-            this.logger.log({
+            this.logger.info({
                 event: `ws_connect_success:${data.id}`,
                 msg: `User ${data.id} connected.`,
                 duration: Date.now() - connectedAt,
@@ -150,7 +154,7 @@ export class WebsocketGateway
                     );
                 }
 
-                this.logger.log({
+                this.logger.info({
                     event: `ws_disconnect_success:${client.user.id}`,
                     msg: `User ${client.user.id} disconnected.`,
                     duration: Date.now() - disconnectedAt,

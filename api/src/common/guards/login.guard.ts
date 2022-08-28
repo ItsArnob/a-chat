@@ -9,10 +9,16 @@ import {
 import { AuthGuard } from "@nestjs/passport";
 import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
+import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 
 @Injectable()
 export class LoginGuard extends AuthGuard("local") {
-    private logger = new Logger(LoginGuard.name);
+
+    constructor(
+        @InjectPinoLogger(LoginGuard.name)
+        private logger: PinoLogger
+    ) { super() }
+
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         const credentials = plainToInstance(LoginDto, request.body);

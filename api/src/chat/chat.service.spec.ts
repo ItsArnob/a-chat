@@ -1,6 +1,7 @@
 import { MONGODB_PROVIDER } from "@/constants";
 import { MongoDB } from "@/database/database.interface";
 import { SaveDirectMessageDto } from "@/dto/chat.dto";
+import pinoLoggerMock from "@/mocks/pino-logger.mock";
 import {
     Chat,
     ChatDoc,
@@ -20,6 +21,7 @@ import {
 import { Test } from "@nestjs/testing";
 import { ModuleMocker, MockFunctionMetadata } from "jest-mock";
 import { Filter } from "mongodb";
+import { getLoggerToken } from "nestjs-pino";
 import ulid from "ulid";
 import { ChatService } from "./chat.service";
 
@@ -47,7 +49,10 @@ describe("ChatService", () => {
         mockEndSession = jest.fn();
 
         const moduleRef = await Test.createTestingModule({
-            providers: [ChatService],
+            providers: [ChatService, {
+                provide: getLoggerToken(ChatService.name),
+                useValue: pinoLoggerMock
+            }],
         })
             .useMocker((token) => {
                 if (token === MONGODB_PROVIDER) {

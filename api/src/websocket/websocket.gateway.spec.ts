@@ -5,18 +5,25 @@ import { ModuleMocker, MockFunctionMetadata } from "jest-mock";
 import { WebsocketGateway } from "./websocket.gateway";
 import { WebsocketService } from "./websocket.service";
 import { Rooms } from './websocket.interface'
-import { ImATeapotException, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import { HttpException, ImATeapotException, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import { getLoggerToken, PinoLogger } from "nestjs-pino";
+import pinoLoggerMock, { PinoLoggerMock } from "@/mocks/pino-logger.mock";
+import { WsExceptionFilter } from "@/common/filters/ws-exception.filter";
 
 const moduleMocker = new ModuleMocker(global);
 
 describe("WebsocketGateway", () => {
     let websocketGateway: WebsocketGateway
     let websocketService: WebsocketService
+    let logger: PinoLoggerMock
 
     beforeEach(async () => {
         const moduleRef = await Test.createTestingModule({
-            providers: [WebsocketGateway],
-        })
+            providers: [WebsocketGateway, {
+                provide: getLoggerToken(WebsocketGateway.name),
+                useValue: pinoLoggerMock
+            }],
+        }).overrideFilter(WsExceptionFilter).useValue({})
             .useMocker((token) => {
                 if (typeof token === "function") {
                     const mockMetadata = moduleMocker.getMetadata(
@@ -30,12 +37,19 @@ describe("WebsocketGateway", () => {
             .compile();
         websocketGateway = moduleRef.get<WebsocketGateway>(WebsocketGateway);
         websocketService = moduleRef.get<WebsocketService>(WebsocketService);
-
+        logger = moduleRef.get<PinoLoggerMock>(getLoggerToken(WebsocketGateway.name));
         jest.spyOn(websocketService, "userRoom").mockImplementation((id) => `${Rooms.User}:${id}`)
         jest.spyOn(websocketService, "userSessRoom").mockImplementation((id) => `${Rooms.UserSessionId}:${id}`)
         jest.spyOn(websocketService, "directChatRoom").mockImplementation((id) => `${Rooms.DirectChat}:${id}`)
         websocketService.emitUserOnline = jest.fn()
     });
+
+    afterEach(() => {
+        logger.info.mockReset()
+        logger.warn.mockReset()
+        logger.error.mockReset()
+        logger.debug.mockReset()
+    })
     describe("handleConnection", () => {
 
         const socket = {
@@ -230,14 +244,19 @@ describe("WebsocketGateway", () => {
         })
 
         it("should catch and not log http errors", async () => {
-            jest.spyOn(websocketService, "getFriendIdsFromSocket").mockRejectedValue(() => new InternalServerErrorException())
+            jest.spyOn(websocketService, "getFriendIdsFromSocket").mockImplementation(() =>  {
+                throw new InternalServerErrorException() 
+            })
+
             await expect(websocketGateway.handleDisconnect(socket as any)).resolves.not.toBeDefined()
-            //TODO: assert logger.error is called
+            expect(logger.error).not.toBeCalled()
         })
         it("should catch and log non-http errors", async () => {
-            jest.spyOn(websocketService, "getFriendIdsFromSocket").mockRejectedValue(() => new Error())
+            jest.spyOn(websocketService, "getFriendIdsFromSocket").mockImplementation(() => {
+                throw new Error()
+            })
             await expect(websocketGateway.handleDisconnect(socket as any)).resolves.not.toBeDefined()
-            //TODO: assert logger.error is not called
+            expect(logger.error).toBeCalled()
         })
     })
 })

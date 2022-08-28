@@ -7,15 +7,20 @@ import {
     UnauthorizedException,
 } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
+import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 import { Strategy } from "passport-local";
 import { AuthService } from "./auth.service";
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
-    constructor(private authService: AuthService) {
+    constructor(
+        private authService: AuthService,
+        @InjectPinoLogger(LocalStrategy.name)
+        private logger: PinoLogger    
+    ) {
         super();
     }
-    private logger = new Logger(LocalStrategy.name);
+    
     async validate(username: string, password: string): Promise<UserNoProfile> {
         try {
             return await this.authService.validateUser(username, password);

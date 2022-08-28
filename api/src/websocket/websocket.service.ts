@@ -16,6 +16,7 @@ import { ModuleRef } from "@nestjs/core";
 import { Socket } from "socket.io";
 import { AuthService } from "@/auth/auth.service";
 import { Rooms } from "./websocket.interface";
+import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 
 @Injectable()
 export class WebsocketService implements OnModuleInit {
@@ -23,9 +24,12 @@ export class WebsocketService implements OnModuleInit {
     private authService: AuthService;
     private usersService: UsersService;
     private websocketGateway: WebsocketGateway;
-    private logger = new Logger(WebsocketService.name);
 
-    constructor(private moduleRef: ModuleRef) {}
+    constructor(
+        private moduleRef: ModuleRef,
+        @InjectPinoLogger(WebsocketService.name)
+        private logger: PinoLogger    
+    ) {}
 
     async getUserFromSocket(
         socket: Socket
