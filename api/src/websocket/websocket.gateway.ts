@@ -1,4 +1,3 @@
-import { WsExceptionFilter } from "@/common/filters/ws-exception.filter";
 import { OnlineSocketsList } from "@/dto/chat.dto";
 import { ChatType } from "@/models/chat.model";
 import { RelationStatus } from "@/models/user.model";
@@ -20,7 +19,6 @@ import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 import { Server, Socket } from "socket.io";
 
 @WebSocketGateway({ cors: { origin: true, credentials: true } })
-@UseFilters(WsExceptionFilter)
 export class WebsocketGateway
     implements OnGatewayConnection, OnGatewayDisconnect
 {

@@ -8,7 +8,6 @@ import { Rooms } from './websocket.interface'
 import { HttpException, ImATeapotException, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { getLoggerToken, PinoLogger } from "nestjs-pino";
 import pinoLoggerMock, { PinoLoggerMock } from "@/mocks/pino-logger.mock";
-import { WsExceptionFilter } from "@/common/filters/ws-exception.filter";
 
 const moduleMocker = new ModuleMocker(global);
 
@@ -23,18 +22,18 @@ describe("WebsocketGateway", () => {
                 provide: getLoggerToken(WebsocketGateway.name),
                 useValue: pinoLoggerMock
             }],
-        }).overrideFilter(WsExceptionFilter).useValue({})
-            .useMocker((token) => {
-                if (typeof token === "function") {
-                    const mockMetadata = moduleMocker.getMetadata(
-                        token
-                    ) as MockFunctionMetadata<any, any>;
-                    const Mock =
-                        moduleMocker.generateFromMetadata(mockMetadata);
-                    return new Mock();
-                }
-            })
-            .compile();
+        })
+        .useMocker((token) => {
+            if (typeof token === "function") {
+                const mockMetadata = moduleMocker.getMetadata(
+                    token
+                ) as MockFunctionMetadata<any, any>;
+                
+                const Mock = moduleMocker.generateFromMetadata(mockMetadata);
+                return new Mock();
+            }
+        })
+        .compile();
         websocketGateway = moduleRef.get<WebsocketGateway>(WebsocketGateway);
         websocketService = moduleRef.get<WebsocketService>(WebsocketService);
         logger = moduleRef.get<PinoLoggerMock>(getLoggerToken(WebsocketGateway.name));
