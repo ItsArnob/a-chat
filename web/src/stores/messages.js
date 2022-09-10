@@ -45,18 +45,21 @@ export const useMessagesStore = defineStore({
                         dataToReturn.dateSeparator = dayjs(
                             dataToReturn.timestamp
                         ).format("dddd, MMM DD, YYYY");
-                        dataToReturn.showAvatar = true;
+                        
+                        if(!dataToReturn.fromSelf) dataToReturn.showAvatar = true;
                     }
 
-                    if (message.authorId !== lastMessageAuthor) {
+                    if (message.authorId !== lastMessageAuthor && !dataToReturn.fromSelf) {
                         dataToReturn.showAvatar = true;
                     }
+                    
                     lastMessageAuthor = message.authorId;
                 } else {
                     dataToReturn.dateSeparator = dayjs(
                         dataToReturn.timestamp
                     ).format("dddd, MMM DD, YYYY");
-                    dataToReturn.showAvatar = true;
+                    if (!dataToReturn.fromSelf) dataToReturn.showAvatar = true;
+                    
                     lastMessageAuthor = message.authorId;
                 }
                 return dataToReturn;

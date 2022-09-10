@@ -52,11 +52,15 @@ export const useChatsStore = defineStore({
                         chat.lastMessageId
                     ),
                     beginningOfChatReached: chat.beginningOfChatReached,
+                    typing: chat.typing?.length ? chat.typing : []
                 };
             };
         },
         currentlyOpenChat(state) {
             return this.getChatById(state.currentlyOpenChatId);
+        },
+        currentChatIsTyping() {
+            return !!this.currentlyOpenChat?.typing?.length
         },
         getChatIdOfUserById(state) {
             return (id) => {
@@ -98,6 +102,21 @@ export const useChatsStore = defineStore({
                 this.chats.push({ id, ...chat });
             }
         },
+
+        setTypingStatus(chatId, userId, isTyping) {
+            const chatIndex = this.chats.findIndex((chat) => chat.id === chatId);
+            if(chatIndex > -1) {
+                const chat = this.chats[chatIndex];
+                if(!chat.typing) chat.typing = [];
+
+                if(isTyping && !chat.typing.includes(userId)) {
+                    chat.typing.push(userId)
+                } else if(!isTyping && chat.typing.includes(userId)) {
+                    chat.typing = chat.typing.filter(id => id != userId)
+                };
+            }
+        },
+
         addOrReplaceChat(data) {
             const chatExists = this.chats.find((chat) => chat.id === data.id);
 

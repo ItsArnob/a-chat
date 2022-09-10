@@ -8274,6 +8274,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vue-spinner@npm:1.0.4":
+  version: 1.0.4
+  resolution: "vue-spinner@npm:1.0.4"
+  checksum: 4c5c8d2abac0b79098dd621ddc5fa9890fb7a7f3a7ad603884d96c4430fb8060c69fcd3f9c7fef6922e90b87c495e77f7c47d8efdd462149cbb0d9b221eadc37
+  languageName: node
+  linkType: hard
+
+"vue-spinner@patch:vue-spinner@npm%3A1.0.4#./.yarn/patches/vue-spinner-npm-1.0.4-efea910b00.patch::locator=TBD%40workspace%3A.":
+  version: 1.0.4
+  resolution: "vue-spinner@patch:vue-spinner@npm%3A1.0.4#./.yarn/patches/vue-spinner-npm-1.0.4-efea910b00.patch::version=1.0.4&hash=e90dc4&locator=TBD%40workspace%3A."
+  checksum: e9ff943836a8876c6ec7e3387f3801108503508606512b3e63cf57926db03f7e17ff981458f2b20286ada0f636d284ea93583b4d0470adae1335f2037ca5d341
+  languageName: node
+  linkType: hard
+
 "vue-toastification@npm:^2.0.0-rc.5":
   version: 2.0.0-rc.5
   resolution: "vue-toastification@npm:2.0.0-rc.5"
@@ -8355,6 +8369,7 @@ __metadata:
     vue-material-design-icons: ^5.1.1
     vue-router: ^4.0.14
     vue-simple-context-menu: ^4.0.4
+    vue-spinner: ^1.0.4
     vue-toastification: ^2.0.0-rc.5
   languageName: unknown
   linkType: soft

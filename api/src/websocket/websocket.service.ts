@@ -190,6 +190,13 @@ export class WebsocketService implements OnModuleInit {
         );
     }
 
+    emitBeginTyping(userId: string, chatId: string) {
+        this.websocketGateway.server.to(this.directChatRoom(chatId)).except(this.userRoom(userId)).emit("Chat:BeginTyping", { chatId, userId });
+    }
+
+    emitEndTyping(userId: string, chatId: string) {
+        this.websocketGateway.server.to(this.directChatRoom(chatId)).except(this.userRoom(userId)).emit("Chat:EndTyping", { chatId, userId });
+    }
     emitUpdateUser(
         emitTo: string | string[],
         data: { [key: string]: any },

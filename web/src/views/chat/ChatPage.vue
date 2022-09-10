@@ -107,6 +107,7 @@
                     class="w-8 h-8 shrink-0 mr-auto ml-auto my-2"
                 />
             </div>
+            <TypingIndicator v-show="chatsStore.currentChatIsTyping"/>
         </div>
 
         <transition name="slide-fade">
@@ -116,7 +117,7 @@
             >
                 <button
                     class="bg-slate-700 hover:bg-slate-600 transition duration-75 p-2 rounded-full"
-                    @click="scrollToBottom"
+                    @click="() => scrollToBottom(true)"
                 >
                     <ArrowSmDownIcon class="w-8 h-8 text-indigo-300" />
                 </button>
@@ -124,7 +125,7 @@
         </transition>
 
         <MessageInput
-            @scroll-to-bottom="scrollToBottom"
+            @scroll-to-bottom="() => scrollToBottom(true)"
             v-if="userStore.canSendMessageToUser(otherUserId)"
             :chatId="$route.params.id"
         />
@@ -143,12 +144,18 @@ import Avatar from "@/components/Avatar.vue";
 import Message from "@/components/chat/Message.vue";
 import MessageInput from "@/components/chat/MessageInput.vue";
 import Spinner from "@/components/icons/Spinner.vue";
+import TypingIndicator from "@/components/chat/TypingIndicator.vue";
+
 import { useActiveStatusRef } from "@/composables/ActiveStatus";
+
 import { useChatsStore } from "@/stores/chats";
 import { useInternalMiscStore } from "@/stores/internalMisc";
 import { useMessagesStore } from "@/stores/messages";
 import { useUserStore } from "@/stores/user";
+
 import { ArrowSmDownIcon, RefreshIcon } from "@heroicons/vue/outline";
+
+import { useRoute, useRouter } from "vue-router";
 import { useTitle } from "@vueuse/core";
 import {
     computed,
@@ -158,7 +165,6 @@ import {
     ref,
     watch,
 } from "vue";
-import { useRoute, useRouter } from "vue-router";
 
 const chatsStore = useChatsStore();
 const userStore = useUserStore();
@@ -294,7 +300,7 @@ const escapeListenerHandler = (event) => {
         isEscape = event.keyCode === 27;
     }
     if (isEscape) {
-        scrollToBottom();
+        scrollToBottom(true);
     }
 };
 const autoScrollToBottomButtonHandler = (event) => {
@@ -305,9 +311,11 @@ const autoScrollToBottomButtonHandler = (event) => {
         ) > 1000;
 };
 
-const scrollToBottom = () => {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+const scrollToBottom = (smooth) => {
+    const reducedMotion = window.matchMedia(`(prefers-reduced-motion: reduce)`).matches
+    messagesContainer.value.scrollTo({ top: messagesContainer.value.scrollHeight, behavior: smooth && !reducedMotion ? 'smooth' : 'instant' });
 };
+
 const goHome = () => {
     router.push("/");
 };
@@ -339,11 +347,7 @@ watch(
             if (distanceFromBottom < 30) {
                 // using 30px here just for some headroom
 
-                nextTick(
-                    () =>
-                        (messagesContainer.value.scrollTop =
-                            messagesContainer.value.scrollHeight)
-                );
+                nextTick(() => scrollToBottom(true));
             }
         }
 
@@ -356,6 +360,13 @@ watch(
         }
     }
 );
+
+watch(() => chatsStore.currentChatIsTyping, (newVal) => {
+    const shouldScroll = Math.abs(
+            messagesContainer.value.scrollHeight - messagesContainer.value.clientHeight - messagesContainer.value.scrollTop
+        ) < 30;    
+    if(newVal && shouldScroll) nextTick(() => scrollToBottom(true)) 
+});
 
 internalMiscStore.$onAction(({ after, name, args: disconnected }) => {
     if (name === "setWsNetworkError")
@@ -410,5 +421,6 @@ internalMiscStore.$onAction(({ after, name, args: disconnected }) => {
 .slide-fade-leave-to {
     transform: translateY(20px);
     opacity: 0;
+
 }
 </style>

@@ -1,0 +1,40 @@
+diff --git a/src/SyncLoader.vue b/src/SyncLoader.vue
+index a1bcb90ed96353931d12e0c2abe151ddd51c3fc7..603fc2f51162114da722872fe7afcada3f050fa7 100644
+--- a/src/SyncLoader.vue
++++ b/src/SyncLoader.vue
+@@ -70,13 +70,13 @@ export default {
+ {
+     33%
+     {
+-        -webkit-transform: translateY(10px);
+-                transform: translateY(10px);
++        -webkit-transform: translateY(5px);
++                transform: translateY(5px);
+     }
+     66%
+     {
+-        -webkit-transform: translateY(-10px);
+-                transform: translateY(-10px);
++        -webkit-transform: translateY(-5px);
++                transform: translateY(-5px);
+     }
+     100%
+     {
+@@ -89,13 +89,13 @@ export default {
+ {
+     33%
+     {
+-        -webkit-transform: translateY(10px);
+-                transform: translateY(10px);
++        -webkit-transform: translateY(5px);
++                transform: translateY(5px);
+     }
+     66%
+     {
+-        -webkit-transform: translateY(-10px);
+-                transform: translateY(-10px);
++        -webkit-transform: translateY(-5px);
++                transform: translateY(-5px);
+     }
+     100%
+     {

@@ -32,6 +32,7 @@
 </template>
 <script setup>
 import { useMessagesStore } from "@/stores/messages";
+import { socket } from "@/utils/socket";
 import { ChevronRightIcon, UploadIcon } from "@heroicons/vue/outline";
 import { onStartTyping } from "@vueuse/core";
 import { computed, defineEmits, nextTick, ref } from "vue";
@@ -46,6 +47,9 @@ const messagesStore = useMessagesStore();
 
 const emit = defineEmits(["scrollToBottom"]);
 
+let lastTypingEmitAt;
+let stopTypingTimeout;
+
 const resizeTextArea = () => {
     textarea.value.style.height = "auto";
     textarea.value.style.height = `${textarea.value.scrollHeight}px`;
@@ -59,6 +63,23 @@ const shouldSubmit = (e) => {
 const handleInputTextarea = (ev) => {
     resizeTextArea();
     message.value = ev.target.value;
+    
+    if(!lastTypingEmitAt || Date.now() - lastTypingEmitAt > 2000) {
+        socket.emit("Chat:BeginTyping", { chatId: props.chatId })
+        lastTypingEmitAt = Date.now()
+    }
+
+    clearTimeout(stopTypingTimeout)
+    if(message.value == "") {
+        socket.emit("Chat:EndTyping", { chatId: props.chatId })
+    } else {
+
+        stopTypingTimeout = setTimeout(() => {
+            lastTypingEmitAt = undefined;
+            socket.emit("Chat:EndTyping", { chatId: props.chatId })
+        }, 1000)
+
+    }
 };
 const submitMessage = async () => {
     const messageCloned = message.value.trim();

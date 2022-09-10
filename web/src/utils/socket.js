@@ -21,6 +21,8 @@ export const initSocket = async () => {
 
     let buffer = [];
     let shouldBuffer = true;
+    const typingTimeoutsByChat = {};
+
     const session = await localforage.getItem("session");
     socket.auth.token = session?.token;
     socket.removeAllListeners();
@@ -73,6 +75,21 @@ export const initSocket = async () => {
     socket.on("Message:New", (data) => {
         const { ackId, chatId, ...rest } = data;
         messagesStore.addMessageToStore(rest, chatId, ackId);
+    });
+
+    socket.on("Chat:BeginTyping", (data) => {
+        chatsStore.setTypingStatus(data.chatId, data.userId, true);
+        
+        clearTimeout(typingTimeoutsByChat[data.chatId])
+        
+        typingTimeoutsByChat[data.chatId] = setTimeout(() => {
+            chatsStore.setTypingStatus(data.chatId, data.userId, false);
+            delete typingTimeoutsByChat[data.chatId]
+        }, 5000);
+    });
+
+    socket.on("Chat:EndTyping", (data) => {
+        chatsStore.setTypingStatus(data.chatId, data.userId, false);
     });
 
     // Error handling.

@@ -1,24 +1,40 @@
+import { HttpExceptionWsFilter } from "@/common/filters/ws-exception.filter";
+import { AuthenticatedWsGuard } from "@/common/guards/authenticated-ws.guard";
 import { OnlineSocketsList } from "@/dto/chat.dto";
+import { ChatTypingDto } from "@/dto/websocket.dto";
 import { ChatType } from "@/models/chat.model";
 import { RelationStatus } from "@/models/user.model";
 import { WebsocketService } from "@/websocket/websocket.service";
 import {
+    ForbiddenException,
     HttpException,
     Logger,
     NotFoundException,
     UnauthorizedException,
     UseFilters,
+    UseGuards,
+    UsePipes,
+    ValidationPipe,
 } from "@nestjs/common";
 import {
     OnGatewayConnection,
     OnGatewayDisconnect,
     WebSocketGateway,
     WebSocketServer,
+    SubscribeMessage,
+    MessageBody,
+    ConnectedSocket
 } from "@nestjs/websockets";
 import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 import { Server, Socket } from "socket.io";
 
+@UseGuards(AuthenticatedWsGuard)
 @WebSocketGateway({ cors: { origin: true, credentials: true } })
+@UsePipes(new ValidationPipe({
+    transform: true,
+    whitelist: true,
+}))
+@UseFilters(HttpExceptionWsFilter)
 export class WebsocketGateway
     implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -165,6 +181,30 @@ export class WebsocketGateway
                 msg: `An unknown error occurred.`,
                 err: e,
             });
+        }
+    }
+
+    @SubscribeMessage("Chat:BeginTyping")
+    chatBeginTyping(
+        @MessageBody() data: ChatTypingDto,
+        @ConnectedSocket() client: Socket    
+    ) {
+        if(client.rooms.has(this.websocketService.directChatRoom(data.chatId))) {
+            this.websocketService.emitBeginTyping(client.user.id, data.chatId)
+        } else {
+            throw new ForbiddenException()
+        }
+    }
+
+    @SubscribeMessage("Chat:EndTyping")
+    chatEndTyping(
+        @MessageBody() data: ChatTypingDto,
+        @ConnectedSocket() client: Socket
+    ) {
+        if (client.rooms.has(this.websocketService.directChatRoom(data.chatId))) {
+            this.websocketService.emitEndTyping(client.user.id, data.chatId)
+        } else {
+            throw new ForbiddenException()
         }
     }
 }

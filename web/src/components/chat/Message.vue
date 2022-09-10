@@ -6,7 +6,7 @@
                 fromSelf ? 'flex-row-reverse self-end' : 'self-start',
             ]"
         >
-            <div class="w-[32px] shrink-0">
+            <div class="w-[32px] shrink-0" v-show="!fromSelf">
                 <Avatar size="xs" v-if="showAvatar" />
             </div>
             <div
