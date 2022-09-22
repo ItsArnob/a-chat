@@ -63,7 +63,7 @@
                 <p class="text-2xl mt-2">
                     {{ chatsStore.currentlyOpenChat.name }}
                 </p>
-                <p>This is the start of your conversation.</p>
+                <p class="text-gray-300 text-lg">This is the beginning of your conversation.</p>
             </div>
             <div class="flex flex-col gap-y-1.5 mt-auto relative">
                 <Spinner

@@ -10,6 +10,7 @@ html {
     --scrollbar-btn: #475569;
     --scrollbar-btn-active: #64748b;
     --scrollbar-btn-hover: var(--scrollbar-btn-active);
+    font-size: 14px;
 }
 
 * {

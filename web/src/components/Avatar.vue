@@ -27,21 +27,21 @@ const props = defineProps(["online", "avatar", "hasFocus", "size"]);
 
 const sizePx = computed(() => {
     if (props.size === "xs") {
-        return "35";
+        return "30";
     } else if (props.size === "sm") {
-        return "40";
+        return "35";
     } else if (props.size === "lg") {
-        return "100";
-    } else return "58";
+        return "95";
+    } else return "50";
 });
 const onlineStatusClasses = computed(() => {
     if (props.size === "xs")
         return; // note: too small, online status probably wouldn't look good on this size.
     else if (props.size === "sm") {
-        return "left-7 top-8 w-3 h-3";
+        return "left-7 top-8 w-2.5 h-2.5";
     } else if (props.size === "lg") {
-        return "w-6 h-6 left-[4.5rem] top-20";
+        return "w-6 h-6 left-[5rem] top-20";
     }
-    return "left-11 top-11 w-4 h-4";
+    return "left-10 top-11 w-3.5 h-3.5";
 });
 </script>
