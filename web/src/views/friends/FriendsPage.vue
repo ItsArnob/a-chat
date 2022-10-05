@@ -7,7 +7,7 @@
             >
                 <font-awesome-icon
                     icon="fa-solid fa-arrow-left"
-                    class="w-6 h-6"
+                    class="w-5 h-5"
                 />
             </button>
             <h2 class="text-2xl leading-none font-medium">Friends</h2>

@@ -12,32 +12,32 @@
         ]"
     >
         <div
-            class="fixed md:static shrink-0 h-full w-full md:w-[400px] z-10 flex flex-col bg-slate-900 md:bg-slate-800/30"
+            class="fixed md:static shrink-0 h-full w-full md:w-[380px] z-10 flex flex-col bg-slate-900 md:bg-slate-800/30"
         >
             <p
-                class="text-center w-full bg-rose-500"
+                class="text-center w-full bg-rose-500 text-sm"
                 v-if="internalMiscStore.wsNetworkError"
             >
                 Reconnecting...
             </p>
-            <div class="px-1.5 left-side-bar-top-bar">
+            <div class=" left-side-bar-top-bar">
                 <div
-                    class="shrink-0 h-14 px-2 self-start w-full flex items-center justify-between"
+                    class="shrink-0 h-12 px-2 self-start w-full flex items-center justify-between"
                 >
                     <div class="flex">
                         <Avatar size="sm" />
 
                         <logout-button class="ml-2" />
                     </div>
-                    <h2 class="text-2xl font-semibold">Chats</h2>
+                    <h2 class="text-2xl font-medium">Chats</h2>
                     <div class="text-emerald-600 flex">
                         <router-link
                             :to="{ name: 'friends' }"
-                            class="hover:text-emerald-500 transition"
+                            class="hover:text-emerald-500 transition leading-none"
                         >
                             <font-awesome-icon
                                 icon="fa-solid fa-address-book"
-                                class="w-7 h-7"
+                                class="w-6 h-6"
                             />
                         </router-link>
                     </div>

@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col h-full w-full relative">
         <div
-            class="h-14 shrink-0 w-full self-start flex flex-wrap justify-between items-center p-2 bottom-shadow"
+            class="h-12 shrink-0 w-full self-start flex flex-wrap justify-between items-center p-2 bottom-shadow"
         >
             <div class="flex items-center h-full">
                 <button
@@ -10,7 +10,7 @@
                 >
                     <font-awesome-icon
                         icon="fa-solid fa-bars"
-                        class="w-6 h-6"
+                        class="w-5 h-5"
                     />
                 </button>
                 <button
@@ -19,7 +19,7 @@
                 >
                     <font-awesome-icon
                         icon="fa-solid fa-arrow-left"
-                        class="w-6 h-6"
+                        class="w-5 h-5"
                     />
                 </button>
                 <div
@@ -31,7 +31,7 @@
                         :online="chatsStore.currentlyOpenChat.online === true"
                     />
                     <div class="ml-2">
-                        <p class="text-xl leading-none">
+                        <p class="text-lg leading-none">
                             {{ chatsStore.currentlyOpenChat.name }}
                         </p>
                         <p class="text-sm leading-none text-slate-300">
@@ -42,7 +42,7 @@
             </div>
         </div>
         <p
-            class="text-center bg-rose-500"
+            class="text-center bg-rose-500 text-sm"
             v-if="internalMiscStore.wsNetworkError"
         >
             Reconnecting...
@@ -60,22 +60,22 @@
                     size="lg"
                     :online="chatsStore.currentlyOpenChat.online === true"
                 />
-                <p class="text-2xl mt-2">
+                <p class="text-xl mt-2">
                     {{ chatsStore.currentlyOpenChat.name }}
                 </p>
-                <p class="text-gray-300 text-lg">This is the beginning of your conversation.</p>
+                <p class="text-gray-300 ">This is the beginning of your conversation.</p>
             </div>
-            <div class="flex flex-col gap-y-1.5 mt-auto relative">
+            <div class="flex flex-col gap-y-1 mt-auto relative">
                 <Spinner
                     v-if="messageLoading.top && !messageLoadFailed.failed"
-                    class="w-8 h-8 shrink-0 mr-auto ml-auto my-2"
+                    class="w-6 h-6 shrink-0 mr-auto ml-auto my-2"
                 />
                 <button
                     @click="loadFailedMessages"
                     v-else-if="messageLoadFailed.failed"
-                    class="text-center"
+                    class="text-center text-sm"
                 >
-                    <RefreshIcon class="h-8 w-8 text-rose-400 mx-auto" />
+                    <RefreshIcon class="h-6 w-6 text-rose-400 mx-auto" />
                     <p class="text-rose-400">
                         Failed to load messages, click to retry.
                     </p>
@@ -86,7 +86,7 @@
                 >
                     <div
                         v-if="message.dateSeparator"
-                        class="text-center text-slate-300 or-line-around"
+                        class="text-center text-slate-300 text-sm or-line-around"
                     >
                         {{ message.dateSeparator }}
                     </div>
@@ -104,7 +104,7 @@
                 </template>
                 <Spinner
                     v-if="messageLoading.bottom"
-                    class="w-8 h-8 shrink-0 mr-auto ml-auto my-2"
+                    class="w-6 h-6 shrink-0 mr-auto ml-auto my-2"
                 />
             </div>
             <TypingIndicator v-show="chatsStore.currentChatIsTyping"/>
@@ -116,10 +116,10 @@
                 class="absolute bottom-[4rem] left-0 right-0 mx-auto w-16 flex justify-center"
             >
                 <button
-                    class="bg-slate-700 hover:bg-slate-600 transition duration-75 p-2 rounded-full"
+                    class="bg-slate-700 hover:bg-slate-600 transition duration-75 p-1.5 rounded-full"
                     @click="() => scrollToBottom(true)"
                 >
-                    <ArrowSmDownIcon class="w-8 h-8 text-indigo-300" />
+                    <ArrowSmDownIcon class="w-7 h-7 text-fuchsia-300" />
                 </button>
             </div>
         </transition>

@@ -32,16 +32,16 @@ const sizePx = computed(() => {
         return "35";
     } else if (props.size === "lg") {
         return "95";
-    } else return "50";
+    } else return "48";
 });
 const onlineStatusClasses = computed(() => {
     if (props.size === "xs")
         return; // note: too small, online status probably wouldn't look good on this size.
     else if (props.size === "sm") {
-        return "left-7 top-8 w-2.5 h-2.5";
+        return "left-7 top-7 w-2.5 h-2.5";
     } else if (props.size === "lg") {
         return "w-6 h-6 left-[5rem] top-20";
     }
-    return "left-10 top-11 w-3.5 h-3.5";
+    return "left-9 top-9 w-3.5 h-3.5";
 });
 </script>

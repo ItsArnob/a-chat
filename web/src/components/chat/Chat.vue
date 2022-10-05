@@ -4,7 +4,7 @@
         @click="chatClicked"
         :class="[
             'transition duration-75 p-2 hover:cursor-pointer flex justify-between rounded-md',
-            isOpen ? 'md:bg-slate-800' : 'hover:bg-slate-800',
+            isOpen ? 'md:bg-slate-700/60' : 'hover:bg-slate-800',
         ]"
     >
         <Avatar :online="online" :has-focus="isOpen" />
@@ -15,7 +15,7 @@
                 lastMessage ? 'justify-evenly' : 'justify-center',
             ]"
         >
-            <div class="md:text-xl break-all flex shrink-0 leading-5">
+            <div class="md:text-lg break-all flex shrink-0 leading-5">
                 {{ name }}
                 <!-- TODO: use a different icon -->
                 <BellIcon
@@ -24,12 +24,12 @@
                 />
 
                 <div
-                    class="text-base whitespace-nowrap text-gray-300/90 ml-auto"
+                    class="text-sm whitespace-nowrap text-gray-300/90 ml-auto"
                 >
                     <p>{{ formattedTime }}</p>
                 </div>
             </div>
-            <div class="flex">
+            <div class="flex text-sm">
                 <p
                     :class="[
                         'text-ellipsis overflow-hidden whitespace-nowrap text-gray-300/90',

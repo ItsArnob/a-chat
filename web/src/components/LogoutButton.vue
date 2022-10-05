@@ -5,7 +5,7 @@
     >
         <font-awesome-icon
             icon="fa-solid fa-arrow-right-from-bracket"
-            class="w-7 h-7"
+            class="w-6 h-6"
         />
     </button>
 </template>

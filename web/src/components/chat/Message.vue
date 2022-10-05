@@ -6,13 +6,13 @@
                 fromSelf ? 'flex-row-reverse self-end' : 'self-start',
             ]"
         >
-            <div class="w-[32px] shrink-0" v-show="!fromSelf">
+            <div class="w-[30px] shrink-0" v-show="!fromSelf">
                 <Avatar size="xs" v-if="showAvatar" />
             </div>
             <div
                 :class="[
-                    'text-lg rounded-xl py-2 px-3 message',
-                    fromSelf ? 'bg-indigo-500' : 'bg-slate-800',
+                    'rounded-xl py-2 px-3 message',
+                    fromSelf ? 'bg-fuchsia-600' : 'bg-slate-800',
                     fromSelf && error ? 'opacity-70' : '',
                 ]"
             >
@@ -44,7 +44,7 @@
                     <button
                         @click="resendMessage"
                         v-if="error"
-                        class="w-8 h-8 flex items-center justify-center bg-slate-700 rounded-full text-indigo-200 hover:bg-slate-600 transition duration-75"
+                        class="w-8 h-8 flex items-center justify-center bg-slate-700 rounded-full text-fuchsias-200 hover:bg-slate-600 transition duration-75"
                     >
                         <RetryIcon :size="25" />
                     </button>

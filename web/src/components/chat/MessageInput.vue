@@ -1,10 +1,10 @@
 <template>
-    <div class="w-full bg-slate-900 flex flex-col shrink-0 min-h-[3.5rem]">
+    <div class="w-full bg-slate-900 flex flex-col shrink-0 min-h-[3rem]">
         <div class="flex w-full p-2">
             <button
                 class="self-end bg-gray-800 p-2 rounded-full mr-2 mb-[0.10rem] hover:bg-gray-600"
             >
-                <UploadIcon class="h-5 w-5" />
+                <UploadIcon class="h-4 w-4" />
             </button>
             <textarea
                 ref="textarea"
@@ -12,8 +12,8 @@
                 rows="1"
                 @input="handleInputTextarea"
                 @keydown="shouldSubmit"
-                class="max-h-[208px] bg-gray-800 resize-none outline-none p-2 rounded w-full"
-                placeholder="Say something!"
+                class="max-h-[208px] bg-gray-800 resize-none outline-none p-1 rounded w-full"
+                placeholder="Type a message"
             />
             <button
                 @click="submitMessage"
@@ -21,11 +21,11 @@
                 :class="[
                     'self-end p-2 rounded-full ml-2 mb-[0.10rem]',
                     canSubmit
-                        ? 'bg-indigo-500 hover:bg-indigo-400'
+                        ? 'bg-fuchsia-500 hover:bg-fuchsia-400'
                         : 'bg-gray-800 hover:bg-gray-600',
                 ]"
             >
-                <ChevronRightIcon class="h-5 w-5" />
+                <ChevronRightIcon class="h-4 w-4" />
             </button>
         </div>
     </div>
