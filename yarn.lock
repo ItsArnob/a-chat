@@ -1340,16 +1340,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@socket.io/admin-ui@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "@socket.io/admin-ui@npm:0.4.0"
+"@socket.io/admin-ui@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@socket.io/admin-ui@npm:0.5.0"
   dependencies:
-    "@types/bcrypt": ~3.0.0
-    bcrypt: ~5.0.1
+    "@types/bcryptjs": ^2.4.2
+    bcryptjs: ^2.4.3
     debug: ~4.3.1
   peerDependencies:
     socket.io: ">=3.1.0"
-  checksum: 38068fd826a5c9c3501377d3a7d2c48c0eac0765c462976cb22009e6c584ed79ab6c7c03cedddd7abcc54a46ed5cba5a3621fe9aa7574a150bf11a24e190763a
+  checksum: 5057e5fa1292225baf6a551f14f2fc5d7e828746655c03d324cc8e97885514e30f52f0582e3096e18673aba9b19f43575d6fb2204913ab11a5461804e11b068c
   languageName: node
   linkType: hard
 
@@ -1445,10 +1445,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/bcrypt@npm:~3.0.0":
-  version: 3.0.1
-  resolution: "@types/bcrypt@npm:3.0.1"
-  checksum: e8cdb677acabd0c6f6cdf3148feae73336c0fe471d55d42474ac3ecdb735434ab5a43338b337aeef71a1c8f9aa56572e9c9d035338ab19b3f3c8291e70d3eb4d
+"@types/bcryptjs@npm:^2.4.2":
+  version: 2.4.2
+  resolution: "@types/bcryptjs@npm:2.4.2"
+  checksum: 220dade7b0312b41e23ccfb15f2ddde7804eb3c7ef41db41a6c49054be1e19a15eb3dd8c8ef196494f0866307cce22ad6f3f272941387124707d81dc66155bbc
   languageName: node
   linkType: hard
 
@@ -2410,7 +2410,7 @@ __metadata:
     "@nestjs/schematics": ^9.0.1
     "@nestjs/testing": ^9.0.5
     "@nestjs/websockets": ^9.0.5
-    "@socket.io/admin-ui": ^0.4.0
+    "@socket.io/admin-ui": ^0.5.0
     "@types/express": ^4.17.13
     "@types/jest": 29.1.1
     "@types/lodash": ^4.14.182
@@ -2658,13 +2658,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bcrypt@npm:^5.0.1, bcrypt@npm:~5.0.1":
+"bcrypt@npm:^5.0.1":
   version: 5.0.1
   resolution: "bcrypt@npm:5.0.1"
   dependencies:
     "@mapbox/node-pre-gyp": ^1.0.0
     node-addon-api: ^3.1.0
   checksum: b59625519f2b2891010b8094208588462b1c759ccacebfd74f0b9a4c1885743434ede246c26b615b94a5cf203dfcb9eb25a1e8dec315afd3098da2b848c0fa12
+  languageName: node
+  linkType: hard
+
+"bcryptjs@npm:^2.4.3":
+  version: 2.4.3
+  resolution: "bcryptjs@npm:2.4.3"
+  checksum: 0e80ed852a41f5dfb1853f53ee14a7390b0ef263ce05dba6e2ef3cd919dfad025a7c21ebcfe5bc7fa04b100990edf90c7a877ff7fe623d3e479753253131b629
   languageName: node
   linkType: hard
 
