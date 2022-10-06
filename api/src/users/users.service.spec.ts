@@ -1060,7 +1060,7 @@ describe("UsersService", () => {
 
             jest.spyOn(mongo.users, "findOne").mockResolvedValue(null as never);
             jest.spyOn(ulid, "ulid").mockReturnValue(userId);
-            jest.spyOn(bcrypt, "hash").mockResolvedValue(passwordHash);
+            jest.spyOn(bcrypt, "hash").mockResolvedValue(passwordHash as never); //silence typescript.
 
             await expect(usersService.createUser(username, password)).resolves.toBeUndefined();
 
