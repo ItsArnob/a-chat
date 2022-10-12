@@ -11,6 +11,6 @@
 import TypingIcon from "vue-spinner/src/SyncLoader.vue";
 import colors from "tailwindcss/colors";
 
-import Avatar from "@/components/Avatar.vue";
+import Avatar from "@/components/user/Avatar.vue";
 
 </script>

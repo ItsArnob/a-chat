@@ -2,59 +2,41 @@
     <RouterLink
         :to="{ name: 'chat', params: { id: chatId } }"
         @click="chatClicked"
-        :class="[
-            'transition duration-75 p-2 hover:cursor-pointer flex justify-between rounded-md',
-            isOpen ? 'md:bg-slate-700/60' : 'hover:bg-slate-800',
-        ]"
     >
-        <Avatar :online="online" :has-focus="isOpen" />
-
-        <div
-            :class="[
-                'ml-3 flex-1 min-w-0 flex flex-col',
-                lastMessage ? 'justify-evenly' : 'justify-center',
-            ]"
+        <User
+            :name="name"
+            :online="online"
+            :class="[ 'hover:cursor-pointer', isOpen ? 'md:bg-slate-700/60' : 'hover:bg-slate-800' ]"
+            :nameEllipsis="true"
         >
-            <div class="md:text-lg break-all flex shrink-0 leading-5">
-                {{ name }}
-                <!-- TODO: use a different icon -->
-                <BellIcon
-                    v-show="hasNewMessages"
-                    class="h-5 w-5 shrink-0 text-blue-400"
-                />
-
-                <div
-                    class="text-sm whitespace-nowrap text-gray-300/90 ml-auto"
-                >
-                    <p>{{ formattedTime }}</p>
-                </div>
-            </div>
-            <div class="flex text-sm">
-                <p
-                    :class="[
-                        'text-ellipsis overflow-hidden whitespace-nowrap text-gray-300/90',
-                    ]"
-                >
-                    {{ lastMessageFromSelf ? "You:" : "" }} {{ lastMessage }}
-                </p>
-                <div class="ml-auto text-gray-300/90">
-                    <MessageStatus
+            <template #content-top-right>
+                <p class="text-sm whitespace-nowrap text-gray-300/90 ml-auto">{{ formattedTime }}</p>
+            </template>
+            <template #description>
+                <div class="flex text-sm">
+                    <p
+                        class="text-ellipsis overflow-hidden whitespace-nowrap text-gray-300/90"
+                    >
+                        <span class="font-medium"> {{ lastMessageFromSelf ? "You:" : "" }} </span> {{ lastMessage }}
+                    </p>
+                    <div class="ml-auto text-gray-300/90">
+                        <MessageStatus
                         :from-self="lastMessageFromSelf"
                         :sending="lastMessageSending"
                         :error="lastMessageError"
-                    />
+                        />
+                    </div>
                 </div>
-            </div>
-        </div>
+            </template>
+        </User>
     </RouterLink>
 </template>
 
 <script setup>
-import Avatar from "@/components/Avatar.vue";
+import User from "@/components/user/User.vue";
 import MessageStatus from "@/components/chat/MessageStatus.vue";
 import { useFormatTime } from "@/composables/FormatTime";
 import { useUserStore } from "@/stores/user";
-import { BellIcon } from "@heroicons/vue/solid";
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
 

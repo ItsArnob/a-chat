@@ -58,7 +58,7 @@
             </TabList>
             <TabPanels class="mt-4 text-white mx-2">
                 <TabPanel class="focus:outline-none">
-                    <User
+                    <FriendUser
                         v-for="friend in userStore.getFriends"
                         :username="friend.username"
                         :online="friend.online"
@@ -75,14 +75,14 @@
                         v-slot="{ open }"
                     >
                         <DisclosureButton
-                            class="w-full text-slate-300 hover:text-white py-2 px-3 hover:bg-slate-800 rounded-md flex"
+                            class="w-full text-slate-300 hover:text-white py-2 px-3 hover:bg-slate-800 rounded-md items-center flex"
                         >
                             <font-awesome-icon
                                 icon="fa-solid fa-angle-down"
                                 class="w-6 h-6 mr-2 transition transform"
                                 :class="open ? '' : '-rotate-90'"
                             />
-                            <p>
+                            <p class="text-sm leading-none">
                                 Incoming —
                                 {{ userStore.getIncomingRequests.length }}
                             </p>
@@ -103,7 +103,7 @@
                                         : '',
                                 ]"
                             >
-                                <User
+                                <FriendUser
                                     v-for="incomingRequest in userStore.getIncomingRequests"
                                     :username="incomingRequest.username"
                                     :id="incomingRequest.id"
@@ -119,14 +119,14 @@
                         v-slot="{ open }"
                     >
                         <DisclosureButton
-                            class="text-slate-300 w-full hover:text-white py-2 px-3 hover:bg-slate-800 rounded-md flex"
+                            class="text-slate-300 w-full hover:text-white py-2 px-3 hover:bg-slate-800 rounded-md flex items-center"
                         >
                             <font-awesome-icon
                                 icon="fa-solid fa-angle-down"
                                 class="w-6 h-6 mr-2 transition transform"
                                 :class="open ? '' : '-rotate-90'"
                             />
-                            <p>
+                            <p class="text-sm leading-none">
                                 Outgoing —
                                 {{ userStore.getOutgoingRequests.length }}
                             </p>
@@ -147,7 +147,7 @@
                                         : '',
                                 ]"
                             >
-                                <User
+                                <FriendUser
                                     v-for="incomingRequest in userStore.getOutgoingRequests"
                                     :username="incomingRequest.username"
                                     :id="incomingRequest.id"
@@ -199,7 +199,7 @@
     </div>
 </template>
 <script setup>
-import User from "@/components/Friends/User.vue";
+import FriendUser from "@/components/Friends/User.vue";
 import Spinner from "@/components/icons/Spinner.vue";
 
 import { useChatsStore } from "@/stores/chats";

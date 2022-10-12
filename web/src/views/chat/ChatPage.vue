@@ -140,7 +140,7 @@
 </template>
 
 <script setup>
-import Avatar from "@/components/Avatar.vue";
+import Avatar from "@/components/user/Avatar.vue";
 import Message from "@/components/chat/Message.vue";
 import MessageInput from "@/components/chat/MessageInput.vue";
 import Spinner from "@/components/icons/Spinner.vue";

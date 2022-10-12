@@ -40,7 +40,7 @@ const onlineStatusClasses = computed(() => {
     else if (props.size === "sm") {
         return "left-7 top-7 w-2.5 h-2.5";
     } else if (props.size === "lg") {
-        return "w-6 h-6 left-[5rem] top-20";
+        return "w-6 h-6 left-[4.5rem] top-[4.5rem]";
     }
     return "left-9 top-9 w-3.5 h-3.5";
 });

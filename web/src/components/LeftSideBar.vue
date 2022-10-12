@@ -65,7 +65,7 @@
     </div>
 </template>
 <script setup>
-import Avatar from "@/components/Avatar.vue";
+import Avatar from "@/components/user/Avatar.vue";
 import Chat from "@/components/chat/Chat.vue";
 import LogoutButton from "@/components/LogoutButton.vue";
 

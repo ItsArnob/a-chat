@@ -35,7 +35,7 @@
                         </button>
                     </Tab>
                 </TabList>
-                <TabPanels class="mt-2 text-white">
+                <TabPanels class="mt-6 mx-2 text-white">
                     <TabPanel>
                         <FormKit
                             id="loginForm"
