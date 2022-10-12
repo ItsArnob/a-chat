@@ -16,12 +16,12 @@
                     fromSelf && error ? 'opacity-70' : '',
                 ]"
             >
-                <p class="whitespace-pre-wrap overflow-wrap-anywhere">
+                <p class="whitespace-pre-wrap overflow-wrap-anywhere text-[15px]">
                     {{ content }}
                 </p>
                 <div
                     :class="[
-                        'text-sm text-white/70',
+                        'text-[13px] text-white/70',
                         fromSelf ? 'text-end' : '',
                     ]"
                 >
@@ -63,7 +63,7 @@
     </div>
 </template>
 <script setup>
-import Avatar from "@/components/Avatar.vue";
+import Avatar from "@/components/user/Avatar.vue";
 import MessageStatus from "@/components/chat/MessageStatus.vue";
 import { useFormatTime } from "@/composables/FormatTime";
 import { useMessagesStore } from "@/stores/messages";
