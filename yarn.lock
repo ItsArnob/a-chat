@@ -1709,10 +1709,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:16.11.64":
-  version: 16.11.64
-  resolution: "@types/node@npm:16.11.64"
-  checksum: 3634477efbeb586f8cdc1baf7670d8ea89c1eba1beac0354fa9123ca193d794da84ec40d4f8a54f694587ba5469e4124ebbba37542ed88eca95a3980ec45551a
+"@types/node@npm:16.18.4":
+  version: 16.18.4
+  resolution: "@types/node@npm:16.18.4"
+  checksum: c2da162df295d81eed199d2b12f1edf9618d9f4099ba84a8553859b40e1dac2d44131c75b57803bd35cf9da881434d0abebe46994a2936b6b9c16d8e52db9146
   languageName: node
   linkType: hard
 
@@ -2424,7 +2424,7 @@ __metadata:
     "@types/express": ^4.17.13
     "@types/jest": 29.1.2
     "@types/lodash": ^4.14.182
-    "@types/node": 16.11.64
+    "@types/node": 16.18.4
     "@types/passport": ^1.0.7
     "@types/passport-http-bearer": ^1.0.37
     "@types/passport-local": ^1.0.34
