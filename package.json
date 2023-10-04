@@ -27,7 +27,7 @@
     "devDependencies": {
         "prettier": "^2.7.1"
     },
-    "packageManager": "yarn@3.3.0",
+    "packageManager": "yarn@3.6.4",
     "resolutions": {
         "passport-http-bearer@1.0.1": "patch:passport-http-bearer@npm:1.0.1#.yarn/patches/passport-http-bearer-npm-1.0.1-482b7dfd57.patch",
         "vue-spinner@^1.0.4": "patch:vue-spinner@npm%3A1.0.4#./.yarn/patches/vue-spinner-npm-1.0.4-efea910b00.patch"
