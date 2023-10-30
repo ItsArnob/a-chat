@@ -3,6 +3,7 @@
 </p>
 <p align="center">Name TBD</p>
 
+# IGNORE THIS README. INSTRUCTIONS NEED TO BE UPDATED.
 # Name TBD
 
 TODO
