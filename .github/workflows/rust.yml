@@ -24,7 +24,7 @@ jobs:
             workspaces: backend -> target
         - name: compile project
           working-directory: ./backend
-          run: cargo build
+          run: cargo build --release
         - name: Archive binaries
           uses: actions/upload-artifact@v3
           with:
