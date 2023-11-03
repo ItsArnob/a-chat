@@ -3,12 +3,17 @@
 </p>
 <p align="center">Name TBD</p>
 
-# IGNORE THIS README. INSTRUCTIONS NEED TO BE UPDATED.
-# Name TBD
 
-TODO
+# REWRITE PROGRESS
+- [x] Rust http api
+- [ ] Rust websocket API
+- [ ] Modify Frontend to work with the backend 
+
 
 Found a bug or want to request a feature? Feel free to create an issue! (template coming soon:tm:)
+
+
+## INSTRUCTIONS NEED TO BE UPDATED.
 
 ## Installation
 
