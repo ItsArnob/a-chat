@@ -3,7 +3,8 @@
 </p>
 <p align="center">Name TBD</p>
 
-# Name TBD
+# This is the fully working NodeJS branch.
+# A work-in-progress rust rewrite can be found in [rewrite-backend](https://github.com/ItsArnob/a-chat/tree/rewrite-backend) branch.
 
 TODO
 
