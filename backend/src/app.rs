@@ -16,10 +16,11 @@ pub struct UserSocket {
     pub online: bool,
     pub last_seen_s: Option<u64>,
     pub channel: Vec<mpsc::UnboundedSender<String>>,
+    pub chats: Vec<String>,
 }
 
 impl UserSocket {
-    pub fn send_json(&self, data: serde_json::Value) {
+    pub fn send_json(&self, data: &serde_json::Value) {
         for channel in &self.channel {
             if let Err(err) = channel.send(data.to_string()) {
                 warn!("Failed to send JSON data to client: {}", err);
@@ -31,6 +32,20 @@ impl UserSocket {
 pub struct AppState {
     pub db: Database,
     pub sockets: Arc<DashMap<String, UserSocket>>,
+    pub chats: Arc<DashMap<String, Vec<String>>>,
+}
+
+
+impl AppState {
+    pub fn chat_send(state: &AppState, chat_id: &str, data: serde_json::Value) {
+        if let Some(users) = state.chats.get(chat_id) {
+            for user_id in users.iter() {
+                if let Some(socket) = state.sockets.get(user_id) {
+                    socket.send_json(&data);
+                }
+            }
+        }
+    }
 }
 
 pub async fn build(config: &ApiConfig) -> Result<Router<()>, mongodb::error::Error> {
@@ -38,6 +53,7 @@ pub async fn build(config: &ApiConfig) -> Result<Router<()>, mongodb::error::Err
     let state = AppState {
         db,
         sockets: Arc::new(DashMap::new()),
+        chats: Arc::new(DashMap::new()),
     };
 
     Ok(Router::new()

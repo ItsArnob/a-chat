@@ -10,14 +10,17 @@ use axum::{
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tokio::{sync::mpsc, time::timeout};
+use tokio::{
+    sync::mpsc::{self, UnboundedSender},
+    time::timeout,
+};
 use tracing::{debug, warn};
 
 use crate::{
     app::AppState,
     database::models::{
         chat, message, session,
-        user::{self, RelatedUserStatus, Relation},
+        user::{self, RelatedUserStatus, Relation, RelationStatus},
     },
     util::result::{ApiError, ApiResult},
 };
@@ -78,8 +81,10 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
                 .await
             {
                 warn!("Failed to send ready message to client: {}", err)
+            } else {
+                let tx = setup_user_socket(&state, socket, &data).await;
+                handle_disconnect(&state, &data.id, tx);
             }
-            setup_user_socket(&state, socket, &data.id, &data.username).await;
         }
         Err(err) => {
             if let Err(err) = socket
@@ -150,19 +155,69 @@ async fn prepare_ready_data(state: &AppState, token: &str) -> ApiResult<ReadyDat
         session_id,
     })
 }
-async fn setup_user_socket(state: &AppState, socket: WebSocket, user_id: &str, username: &str) {
-    debug!("Client authenticated: {}", username);
+
+/// returns when socket disconnects.
+async fn setup_user_socket(
+    state: &AppState,
+    socket: WebSocket,
+    data: &ReadyData,
+) -> UnboundedSender<String> {
+    debug!("Client authenticated: {}", &data.id);
 
     let (tx, mut rx) = mpsc::unbounded_channel();
+    let friend_ids: Vec<&str> = data
+        .users
+        .iter()
+        .filter_map(|user| {
+            if let Some(RelationStatus::Friend) = user.relationship {
+                Some(user.id.as_str())
+            } else {
+                None
+            }
+        })
+        .collect();
+    let chat_ids = data
+        .chats
+        .iter()
+        .filter(|chat| {
+            chat.recipients
+                .iter()
+                .any(|recipient| friend_ids.contains(&recipient.id.as_str()))
+        })
+        .map(|chat| chat.id.to_owned())
+        .collect::<Vec<String>>();
 
-    // this is to drop the dashmap reference so it doesn't lock everything else.
-    {
-        let mut user_socket = state.sockets.entry(user_id.to_owned()).or_default();
+    // database is the single source of truth. updating local state in case database was manually updated.
+    for id in &chat_ids {
+        let mut user_chats = state.chats.entry(id.to_owned()).or_default();
+        if !user_chats.contains(&data.id) {
+            user_chats.push(data.id.to_owned());
+        }
+    }
 
+    let old_chat_ids = {
+
+        let mut user_socket = state.sockets.entry(data.id.to_owned()).or_default();
+        let old_chat_ids = user_socket.chats.clone();
+
+        // Replacing it in case database was manually updated.
+        user_socket.chats = chat_ids.clone();
         user_socket.online = true;
         user_socket.last_seen_s = None;
         user_socket.channel.push(tx.clone());
+
+        old_chat_ids
+
     };
+
+    // removing old chats if user is not in them anymore.
+    for old_chat_id in old_chat_ids {
+        if !chat_ids.contains(&old_chat_id) {
+            if let Some(mut users) = state.chats.get_mut(&old_chat_id) {
+                users.retain(|uid| uid != &data.id);
+            }
+        }
+    }
 
     let (mut sink, mut stream) = socket.split();
 
@@ -177,32 +232,61 @@ async fn setup_user_socket(state: &AppState, socket: WebSocket, user_id: &str, u
     while let Some(msg) = stream.next().await {
         if let Ok(Message::Text(text)) = msg {
             // unwrapping it because this is impossible. data was inserted before this code. (unless the hashmap was modified somewhere else???)
-            let user_socket = state.sockets.get(user_id).unwrap();
-            user_socket.send_json(json!({ "data": text }));
+            let user_socket = state.sockets.get(&data.id).unwrap();
+            user_socket.send_json(&json!({ "data": text }));
         }
     }
 
-    // if we reached here then it means the socket disconnected.
-
-    // unwrapping it because this is impossible. data was inserted before this code. (unless the hashmap was modified somewhere else???)
-    let mut user_socket = state.sockets.get_mut(user_id).unwrap();
-    user_socket.channel.retain(|c| !tx.same_channel(c));
-
-    if user_socket.channel.is_empty() {
-        user_socket.online = false;
-        user_socket.last_seen_s = Some(
-            std::time::SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("TIME TRAVEL>!!?!?!")
-                .as_secs(),
-        );
-    }
-    debug!(
-        "Client {} disconnected at {:?} (`None` if user has other clients)",
-        username, user_socket.last_seen_s
-    )
+    tx
 }
 
+fn handle_disconnect(state: &AppState, user_id: &str, tx: UnboundedSender<String>) {
+    // making a copy because we dont want to keep the sockets dashmap locked for long.
+    let (has_no_clients, user_chats) = {
+        // unwrapping it because this is impossible. data was inserted before this code. (unless the hashmap was modified somewhere else???)
+
+        let mut user_socket = state.sockets.get_mut(user_id).unwrap();
+        let old_chats = user_socket.chats.to_owned();
+        user_socket.channel.retain(|c| !tx.same_channel(c));
+        if user_socket.channel.is_empty() {
+            user_socket.chats = vec![]; // to free the ram right away. (clear() function does not free the ram.)
+            user_socket.online = false;
+            user_socket.last_seen_s = Some(
+                std::time::SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .expect("TIME TRAVEL>!!?!?!")
+                    .as_secs(),
+            );
+        }
+        (user_socket.channel.is_empty(), old_chats)
+    };
+    if has_no_clients {
+        // Collect the chats that are to be removed after cleaning up the users
+        let chats_to_remove: Vec<&str> = user_chats
+            .iter()
+            .filter_map(|chat| {
+                state.chats.get_mut(chat).and_then(|mut users| {
+                    users.retain(|id| id != user_id);
+                    if users.is_empty() {
+                        Some(chat.as_str())
+                    } else {
+                        None
+                    }
+                })
+            })
+            .collect();
+
+        // Remove the chats that are now empty
+        for chat in chats_to_remove {
+            state.chats.remove(chat);
+        }
+    }
+
+    debug!(
+        "Client {} disconnected. has_no_clients: {}",
+        user_id, has_no_clients
+    )
+}
 #[derive(Deserialize)]
 struct AuthReq {
     event: String,
