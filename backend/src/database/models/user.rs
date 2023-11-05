@@ -226,7 +226,33 @@ async fn find_account_by_name(db: &Database, username: &str) -> ApiResult<Option
 
     Ok(account)
 }
+pub async fn get_friend_ids(db: &Database, user_id: &str) -> ApiResult<Vec<String>> {
+    let user = db
+        .users::<User>()
+        .find_one(
+            doc! {
+                "_id": user_id
+            },
+            None,
+        )
+        .await
+        .context("get_friend_ids: Failed to find user")?;
 
+    let user = match user {
+        Some(user) => user,
+        None => return Err(ApiError::UserNotFound),
+    };
+
+    match user.profile {
+        Some(profile) => Ok(profile
+            .relations
+            .into_iter()
+            .filter(|relation| relation.status == RelationStatus::Friend)
+            .map(|relation| relation.id)
+            .collect()),
+        None => Ok(vec![]),
+    }
+}
 pub async fn find_relations_of_user(db: &Database, user_id: &str) -> ApiResult<Vec<Relation>> {
     let user = db
         .users::<User>()

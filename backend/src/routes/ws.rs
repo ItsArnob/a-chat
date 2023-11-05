@@ -40,7 +40,6 @@ pub async fn ws_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> 
     ws.on_upgrade(move |socket| handle_socket(socket, state))
 }
 
-// TODO: return socket error response as { event: "Error", data: {} }
 async fn handle_socket(mut socket: WebSocket, state: AppState) {
     // close connection if client doesn't authenticate within 5 secs.
     let data = timeout(Duration::from_secs(5), socket.recv()).await;
@@ -83,7 +82,7 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
                 warn!("Failed to send ready message to client: {}", err)
             } else {
                 let tx = setup_user_socket(&state, socket, &data).await;
-                handle_disconnect(&state, &data.id, tx);
+                handle_disconnect(&state, &data.id, tx).await;
             }
         }
         Err(err) => {
@@ -165,12 +164,13 @@ async fn setup_user_socket(
     debug!("Client authenticated: {}", &data.id);
 
     let (tx, mut rx) = mpsc::unbounded_channel();
-    let friend_ids: Vec<&str> = data
+    let mut was_offline = false;
+    let friend_ids: Vec<String> = data
         .users
         .iter()
         .filter_map(|user| {
             if let Some(RelationStatus::Friend) = user.relationship {
-                Some(user.id.as_str())
+                Some(user.id.to_owned())
             } else {
                 None
             }
@@ -182,7 +182,7 @@ async fn setup_user_socket(
         .filter(|chat| {
             chat.recipients
                 .iter()
-                .any(|recipient| friend_ids.contains(&recipient.id.as_str()))
+                .any(|recipient| friend_ids.contains(&recipient.id))
         })
         .map(|chat| chat.id.to_owned())
         .collect::<Vec<String>>();
@@ -196,10 +196,12 @@ async fn setup_user_socket(
     }
 
     let old_chat_ids = {
-
         let mut user_socket = state.sockets.entry(data.id.to_owned()).or_default();
         let old_chat_ids = user_socket.chats.clone();
 
+        if !user_socket.online {
+            was_offline = true;
+        };
         // Replacing it in case database was manually updated.
         user_socket.chats = chat_ids.clone();
         user_socket.online = true;
@@ -207,7 +209,6 @@ async fn setup_user_socket(
         user_socket.channel.push(tx.clone());
 
         old_chat_ids
-
     };
 
     // removing old chats if user is not in them anymore.
@@ -228,37 +229,83 @@ async fn setup_user_socket(
         }
     });
 
+    if was_offline {
+        state.emit_user_online(&data.id, &friend_ids, true, None);
+    }
+
     // this is just an example of how to send data to the client.
     while let Some(msg) = stream.next().await {
         if let Ok(Message::Text(text)) = msg {
-            // unwrapping it because this is impossible. data was inserted before this code. (unless the hashmap was modified somewhere else???)
-            let user_socket = state.sockets.get(&data.id).unwrap();
-            user_socket.send_json(&json!({ "data": text }));
+            match serde_json::from_str::<WsInput>(&text) {
+                Ok(input) => match input.event.as_str() {
+                    "ChatStartTyping" => {
+                        if state.user_perm_chat_exists(&data.id, &input.data) {
+                            state.emit_chat_data(
+                                &input.data,
+                                json!({
+                                    "event": "ChatStartTyping",
+                                    "data": {
+                                        "chatId": input.data,
+                                        "userId": data.id
+                                    }
+                                }),
+                            );
+                        }
+                    }
+                    "ChatEndTyping" => {
+                        if state.user_perm_chat_exists(&data.id, &input.data) {
+                            state.emit_chat_data(
+                                &input.data,
+                                json!({
+                                    "event": "ChatEndTyping",
+                                    "data": {
+                                        "chatId": input.data,
+                                        "userId": data.id
+                                    }
+                                }),
+                            );
+                        }
+                    }
+                    _ => {
+                        let user_socket = state.sockets.get(&data.id).unwrap();
+                        user_socket
+                            .send_json(&json!({ "event":"Error", "data": "Unknown event." }));
+                    }
+                },
+                Err(_) => {
+                    // unwrapping it because this is impossible. data was inserted before this code. (unless the hashmap was modified somewhere else???)
+                    let user_socket = state.sockets.get(&data.id).unwrap();
+                    user_socket.send_json(&json!({ "data": text }));
+                }
+            }
         }
     }
 
     tx
 }
 
-fn handle_disconnect(state: &AppState, user_id: &str, tx: UnboundedSender<String>) {
+async fn handle_disconnect(state: &AppState, user_id: &str, tx: UnboundedSender<String>) {
     // making a copy because we dont want to keep the sockets dashmap locked for long.
-    let (has_no_clients, user_chats) = {
+
+    let (has_no_clients, user_chats, last_seen_s) = {
         // unwrapping it because this is impossible. data was inserted before this code. (unless the hashmap was modified somewhere else???)
 
         let mut user_socket = state.sockets.get_mut(user_id).unwrap();
         let old_chats = user_socket.chats.to_owned();
         user_socket.channel.retain(|c| !tx.same_channel(c));
+        let mut last_seen_s = None;
         if user_socket.channel.is_empty() {
-            user_socket.chats = vec![]; // to free the ram right away. (clear() function does not free the ram.)
-            user_socket.online = false;
-            user_socket.last_seen_s = Some(
+            last_seen_s = Some(
                 std::time::SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .expect("TIME TRAVEL>!!?!?!")
                     .as_secs(),
             );
+            user_socket.chats = vec![]; // to free the ram right away. (clear() function does not free the ram.)
+            user_socket.online = false;
+            user_socket.last_seen_s = last_seen_s;
         }
-        (user_socket.channel.is_empty(), old_chats)
+        (user_socket.channel.is_empty(), old_chats, last_seen_s)
     };
     if has_no_clients {
         // Collect the chats that are to be removed after cleaning up the users
@@ -280,6 +327,9 @@ fn handle_disconnect(state: &AppState, user_id: &str, tx: UnboundedSender<String
         for chat in chats_to_remove {
             state.chats.remove(chat);
         }
+
+        let friend_ids = user::get_friend_ids(&state.db, user_id).await.unwrap();
+        state.emit_user_online(user_id, &friend_ids, false, last_seen_s);
     }
 
     debug!(
@@ -287,8 +337,57 @@ fn handle_disconnect(state: &AppState, user_id: &str, tx: UnboundedSender<String
         user_id, has_no_clients
     )
 }
+
+impl AppState {
+    pub fn emit_chat_data(&self, chat_id: &str, data: serde_json::Value) {
+        if let Some(users) = self.chats.get(chat_id) {
+            for user_id in users.iter() {
+                if let Some(socket) = self.sockets.get(user_id) {
+                    socket.send_json(&data);
+                }
+            }
+        }
+    }
+    pub fn user_perm_chat_exists(&self, user_id: &str, chat_id: &str) -> bool {
+        if let Some(user) = self.sockets.get(user_id) {
+            user.chats.contains(&chat_id.to_owned())
+        } else {
+            false
+        }
+    }
+    pub fn emit_user_online(
+        &self,
+        user_id: &str,
+        recipients: &Vec<String>,
+        is_online: bool,
+        last_seen_s: Option<u64>,
+    ) {
+        for recipient in recipients {
+            if let Some(socket) = self.sockets.get(recipient) {
+                socket.send_json(&json!({
+                    "event": "UserUpdate",
+                    "data": {
+                        "user": {
+                            "id": user_id,
+                            "online": is_online,
+                            "lastSeen": last_seen_s
+                        }
+                    }
+                }));
+            }
+        }
+    }
+}
+
 #[derive(Deserialize)]
 struct AuthReq {
     event: String,
     token: String,
+}
+
+// temporary measure
+#[derive(Deserialize)]
+struct WsInput {
+    event: String,
+    data: String,
 }

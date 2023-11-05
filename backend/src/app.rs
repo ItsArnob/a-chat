@@ -35,19 +35,6 @@ pub struct AppState {
     pub chats: Arc<DashMap<String, Vec<String>>>,
 }
 
-
-impl AppState {
-    pub fn chat_send(state: &AppState, chat_id: &str, data: serde_json::Value) {
-        if let Some(users) = state.chats.get(chat_id) {
-            for user_id in users.iter() {
-                if let Some(socket) = state.sockets.get(user_id) {
-                    socket.send_json(&data);
-                }
-            }
-        }
-    }
-}
-
 pub async fn build(config: &ApiConfig) -> Result<Router<()>, mongodb::error::Error> {
     let db = Database::connect(config).await?;
     let state = AppState {
