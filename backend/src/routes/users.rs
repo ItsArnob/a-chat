@@ -12,6 +12,8 @@ use crate::{app::AppState, util::result::ApiResult};
 
 use crate::database::models::user;
 
+use super::ws;
+
 pub fn build_router() -> Router<AppState> {
     Router::new().route(
         "/:usernameOrId/friend",
@@ -30,6 +32,15 @@ async fn add_friend(
         None => false,
     };
     let result = user::add_friend(&state.db, &username_or_id, &auth.id, is_id).await?;
+
+    match result.chat {
+        None => {
+            ws::emit_new_friend_request(&state, &auth.id, &auth.username, &result.user.id, &result.user.username)
+        }
+        Some(ref chat) => {
+            ws::emit_friend_added(&state, &auth.id, &result.user.id, chat)
+        } 
+    }
     Ok(Json(result))
 }
 
@@ -39,6 +50,7 @@ async fn remove_friend(
     auth: AuthUser,
 ) -> ApiResult<Json<RemoveFriendResponse>> {
     let result = user::remove_friend(&state.db, &user_id, &auth.id).await?;
+    ws::emit_friend_removed(&state, &auth.id, &user_id, &result.message, &result.chat_id);
     Ok(Json(result))
 }
 

@@ -15,6 +15,8 @@ use crate::{
     },
 };
 
+use super::ws;
+
 pub fn build_router() -> Router<AppState> {
     Router::new().route(
         "/:chatId/messages",
@@ -49,15 +51,16 @@ async fn save_direct_message(
 ) -> ApiResult<Json<MessageSaveResponse>> {
     let message =
         message::save_direct_message(&state.db, &auth.id, &chat_id, &body.content).await?;
-
-    Ok(Json(MessageSaveResponse {
+    let message_response = MessageSaveResponse {
         id: message.id,
         chat_id: message.chat_id,
         author_id: message.author_id,
         content: message.content,
         timestamp: message.timestamp,
         ack_id: body.ack_id,
-    }))
+    };
+    ws::emit_new_message(&state, &message_response);
+    Ok(Json(message_response))
 }
 
 #[derive(Debug, Deserialize, Serialize)]

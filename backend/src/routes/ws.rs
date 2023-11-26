@@ -25,6 +25,8 @@ use crate::{
     util::result::{ApiError, ApiResult},
 };
 
+use super::{chat::{MessageJson, MessageSaveResponse}, users::ChatJson};
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct ReadyData {
@@ -275,7 +277,8 @@ async fn setup_user_socket(
                 Err(_) => {
                     // unwrapping it because this is impossible. data was inserted before this code. (unless the hashmap was modified somewhere else???)
                     let user_socket = state.sockets.get(&data.id).unwrap();
-                    user_socket.send_json(&json!({ "data": text }));
+                    user_socket
+                        .send_json(&json!({ "event": "Error", "data": "Invalid json data." }));
                 }
             }
         }
@@ -338,6 +341,172 @@ async fn handle_disconnect(state: &AppState, user_id: &str, tx: UnboundedSender<
     )
 }
 
+pub fn emit_new_message(state: &AppState, message: &MessageSaveResponse) {
+    state.emit_chat_data(
+        //TODO: make it so that the sender socket doesn't receive the message.
+        &message.chat_id,
+        json!({
+            "event": "ChatNewMessage",
+            "data": message
+        }),
+    );
+}
+
+// TODO: Test this
+pub fn leave_direct_chat(state: &AppState, users: &[&str], chat_id: &str) {
+    for user_id in users {
+        if let Some(mut user) = state.sockets.get_mut(*user_id) {
+            user.chats.retain(|id| id != chat_id);
+        }
+    }
+    state.chats.remove(chat_id);
+}
+
+pub fn emit_new_direct_chat_join(state: &AppState, users: Vec<String>, chat: &ChatJson) {
+
+    for user_id in &users {
+        if let Some(mut user) = state.sockets.get_mut(user_id) {
+            user.chats.push(chat.id.to_owned());
+        }
+    }
+    state.chats.insert(chat.id.to_owned(), users);
+    state.emit_chat_data(&chat.id, serde_json::to_value(chat).unwrap());
+
+}
+
+pub fn emit_friend_added(state: &AppState, user_id: &str, receiver_user_id: &str, chat: &ChatJson) {
+    if let Some(user) = state.sockets.get(user_id) {
+        match state.sockets.get(receiver_user_id) {
+            Some(receiver_user) => {
+                user.send_json(&json!({
+                    "event": "UserUpdate",
+                    "data": {
+                       "user": {
+                        "id": receiver_user_id,
+                        "relationship": RelationStatus::Friend,
+                        "online": receiver_user.online,
+                        "lastSeen": receiver_user.last_seen_s
+                       },
+                    }
+                }));
+            }
+            None => {
+                user.send_json(&json!({
+                    "event": "UserUpdate",
+                    "data": {
+                       "user": {
+                        "id": receiver_user_id,
+                        "relationship": RelationStatus::Friend,
+                        "online": false
+                       },
+                    }
+                }));
+            }
+        }
+    }
+    if let Some(receiver_user) = state.sockets.get(receiver_user_id) {
+        match state.sockets.get(user_id) {
+            Some(user) => {
+                receiver_user.send_json(&json!({
+                    "event": "UserUpdate",
+                    "data": {
+                       "user": {
+                        "id": user_id,
+                        "relationship": RelationStatus::Friend,
+                        "online": user.online,
+                        "lastSeen": user.last_seen_s
+                       },
+                    }
+                }));
+            }
+            None => {
+                receiver_user.send_json(&json!({
+                    "event": "UserUpdate",
+                    "data": {
+                       "user": {
+                        "id": user_id,
+                        "relationship": RelationStatus::Friend,
+                        "online": false
+                       },
+                    }
+                }));
+            }
+        }
+    };
+    emit_new_direct_chat_join(state, vec![user_id.to_owned(), receiver_user_id.to_owned()], chat);
+}
+pub fn emit_new_friend_request(
+    state: &AppState,
+    user_id: &str,
+    username: &str,
+    receiver_id: &str,
+    receiver_username: &str,
+) {
+    if let Some(user) = state.sockets.get(receiver_id) {
+        user.send_json(&json!({
+            "event": "UserUpdate",
+            "data": {
+               "user": {
+                "id": user_id,
+                "username": username,
+                "relationship": RelationStatus::Incoming,
+               },
+            }
+        }));
+    };
+    if let Some(user) = state.sockets.get(user_id) {
+        user.send_json(&json!({
+            "event": "UserUpdate",
+            "data": {
+               "user": {
+                "id": receiver_id,
+                "username": receiver_username,
+                "relationship": RelationStatus::Outgoing,
+               },
+            }
+        }));
+    };
+}
+
+pub fn emit_friend_removed(
+    state: &AppState,
+    user_id: &str,
+    receiver_user_id: &str,
+    message: &str,
+    chat_id: &Option<String>,
+) {
+    if let Some(id) = chat_id {
+        leave_direct_chat(state, &[user_id, receiver_user_id], id)
+    }
+
+    if let Some(user) = state.sockets.get(user_id) {
+        user.send_json(&json!({
+            "event": "UserUpdate",
+            "data": {
+               "user": {
+                "id": receiver_user_id,
+                "relationship": RelationStatus::None,
+                "online": false
+               },
+               "message": message
+            }
+        }));
+    }
+
+    if let Some(user) = state.sockets.get(receiver_user_id) {
+        user.send_json(&json!({
+            "event": "UserUpdate",
+            "data": {
+               "user": {
+                "id": user_id,
+                "relationship": RelationStatus::None,
+                "online": false
+               },
+               "message": message
+            }
+        }));
+    };
+}
 impl AppState {
     pub fn emit_chat_data(&self, chat_id: &str, data: serde_json::Value) {
         if let Some(users) = self.chats.get(chat_id) {
