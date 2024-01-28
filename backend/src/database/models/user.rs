@@ -118,12 +118,16 @@ pub async fn find_related_users_with_status(
     {
         let relationship = relations.iter().find(|relation| relation.id == user.id);
 
-        let (online, last_seen_s) = {
-            if let Some(socket) = sockets.get(&user.id) {
-                (socket.online, socket.last_seen_s)
+        let (online, last_seen_s) = if let Some(relation) = relationship {
+            if relation.status == RelationStatus::Friend {
+                sockets
+                    .get(&user.id)
+                    .map_or((false, None), |socket| (socket.online, socket.last_seen_s))
             } else {
                 (false, None)
             }
+        } else {
+            (false, None)
         };
 
         users.push(RelatedUserStatus {

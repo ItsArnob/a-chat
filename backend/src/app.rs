@@ -5,7 +5,7 @@ use crate::{
 };
 use axum::{routing::get, Router};
 use dashmap::DashMap;
-use http::header;
+use http::{header, Method};
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
@@ -53,7 +53,8 @@ pub async fn build(config: &ApiConfig) -> Result<Router<()>, mongodb::error::Err
             CorsLayer::new()
                 .allow_credentials(true)
                 .allow_origin(config.cors_origins.to_owned())
-                .allow_headers([header::CONTENT_TYPE]),
+                .allow_methods([Method::GET, Method::POST, Method::DELETE, Method::PUT])
+                .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION]),
         )
         .with_state(state))
 }
