@@ -275,16 +275,11 @@ async fn setup_user_socket(
                             .unwrap();
                     }
                     _ => {
-                        let user_socket = state.sockets.get(&data.id).unwrap();
-                        user_socket
-                            .send_json(&json!({ "event":"Error", "data": "Unknown event." }));
+                        tx.send(json!({ "event":"Error", "data": "Unknown event." }).to_string()).unwrap();
                     }
                 },
                 Err(_) => {
-                    // unwrapping it because this is impossible. data was inserted before this code. (unless the hashmap was modified somewhere else???)
-                    let user_socket = state.sockets.get(&data.id).unwrap();
-                    user_socket
-                        .send_json(&json!({ "event": "Error", "data": "Invalid json data." }));
+                    tx.send(&json!({ "event": "Error", "data": "Invalid json data." }).to_string());
                 }
             }
         }
