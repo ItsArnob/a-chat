@@ -242,7 +242,7 @@ async fn setup_user_socket(
                 Ok(input) => match input.event.as_str() {
                     "ChatStartTyping" => {
                         if state.user_perm_chat_exists(&data.id, &input.data) {
-                            state.emit_chat_data(
+                            state.emit_chat_data_except(
                                 &input.data,
                                 json!({
                                     "event": "ChatStartTyping",
@@ -251,12 +251,13 @@ async fn setup_user_socket(
                                         "userId": data.id
                                     }
                                 }),
+                                &data.id
                             );
                         }
                     }
                     "ChatEndTyping" => {
                         if state.user_perm_chat_exists(&data.id, &input.data) {
-                            state.emit_chat_data(
+                            state.emit_chat_data_except(
                                 &input.data,
                                 json!({
                                     "event": "ChatEndTyping",
@@ -265,6 +266,7 @@ async fn setup_user_socket(
                                         "userId": data.id
                                     }
                                 }),
+                                &data.id
                             );
                         }
                     }
@@ -513,6 +515,17 @@ impl AppState {
             for user_id in users.iter() {
                 if let Some(socket) = self.sockets.get(user_id) {
                     socket.send_json(&data);
+                }
+            }
+        }
+    }
+    pub fn emit_chat_data_except(&self, chat_id: &str, data: serde_json::Value, except: &str) {
+        if let Some(users) = self.chats.get(chat_id) {
+            for user_id in users.iter() {
+                if user_id != except {
+                    if let Some(socket) = self.sockets.get(user_id) {
+                        socket.send_json(&data);
+                    }
                 }
             }
         }
