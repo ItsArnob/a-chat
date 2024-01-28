@@ -279,7 +279,7 @@ async fn setup_user_socket(
                     }
                 },
                 Err(_) => {
-                    tx.send(&json!({ "event": "Error", "data": "Invalid json data." }).to_string());
+                    tx.send(json!({ "event": "Error", "data": "Invalid json data." }).to_string()).unwrap();
                 }
             }
         }
