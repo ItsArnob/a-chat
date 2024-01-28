@@ -270,6 +270,10 @@ async fn setup_user_socket(
                             );
                         }
                     }
+                    "Ping" => {
+                        tx.send(json!({ "event": "Pong", "data": input.data }).to_string())
+                            .unwrap();
+                    }
                     _ => {
                         let user_socket = state.sockets.get(&data.id).unwrap();
                         user_socket
