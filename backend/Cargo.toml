@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 
-axum = { version = "0.6.6", features = ["macros", "ws"] }
+axum = { version = "0.7.0", features = ["macros", "ws"] }
 axum-macros = "0.3.4"
 serde = { version = "1.0.152", features = ["derive"] }
 tower = { version = "0.4.13", features = ["util", "timeout"] }
