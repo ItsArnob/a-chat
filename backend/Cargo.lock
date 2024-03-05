@@ -81,7 +81,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
- "axum-macros",
+ "axum-macros 0.4.0",
  "bcrypt",
  "dashmap",
  "dotenvy",
@@ -140,7 +140,7 @@ checksum = "3b829e4e32b91e643de6eafe82b1d90675f5874230191a4ffbc1b336dec4d6bf"
 dependencies = [
  "async-trait",
  "axum-core",
- "axum-macros",
+ "axum-macros 0.3.8",
  "base64 0.21.5",
  "bitflags",
  "bytes",
@@ -190,6 +190,18 @@ name = "axum-macros"
 version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdca6a10ecad987bda04e95606ef85a5417dcaac1a78455242d72e031e2b6b62"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.38",
+]
+
+[[package]]
+name = "axum-macros"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a2edad600410b905404c594e2523549f1bcd4bded1e252c8f74524ccce0b867"
 dependencies = [
  "heck",
  "proc-macro2",
