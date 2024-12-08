@@ -9,7 +9,7 @@ edition = "2021"
 
 axum = { version = "0.6.6", features = ["macros", "ws"] }
 axum-macros = "0.3.4"
-serde = { version = "1.0.152", features = ["derive"] }
+serde = { version = "1.0.190", features = ["derive"] }
 tower = { version = "0.4.13", features = ["util", "timeout"] }
 tower-http = { version = "0.3.5", features = [
     "trace",
