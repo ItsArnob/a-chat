@@ -19,7 +19,7 @@ tower-http = { version = "0.3.5", features = [
     "cors",
     "add-extension"
 ] }
-validator = { version = "0.16.0", features = ["derive"] }
+validator = { version = "0.21.0", features = ["derive"] }
 # data_layer = { path = "../data_layer" }
 tokio = { version = "1.26.0", features = ["full"] }
 tracing = "0.1.37"
